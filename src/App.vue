@@ -66,10 +66,9 @@
 
 <style lang="scss">
 	/* 全局样式 */
-	@import url("./static/styles/global.scss");
-	
+	@import "./static/styles/global.scss";
 	/* 重置样式 */
-	* {
+	page, view, text, image, button, input {
 		box-sizing: border-box;
 	}
 	
