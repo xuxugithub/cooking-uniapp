@@ -1,0 +1,395 @@
+<template>
+	<view class="container">
+		<!-- 菜品图片 -->
+		<view class="dish-image-section" v-if="dish">
+			<image class="dish-image" :src="getImageUrl(dish.image)" mode="aspectFill"></image>
+			<view class="dish-overlay">
+				<text class="dish-name">{{dish.name}}</text>
+				<view class="dish-basic-info">
+					<text class="dish-difficulty" :style="{color: getDifficultyColor(dish.difficulty)}">
+						{{getDifficultyText(dish.difficulty)}}
+					</text>
+					<text class="dish-time">{{dish.cookingTime}}分钟</text>
+					<text class="dish-servings">{{dish.servings}}人份</text>
+				</view>
+			</view>
+		</view>
+
+		<!-- 菜品信息 -->
+		<view class="dish-info-section" v-if="dish">
+			<view class="info-item">
+				<text class="info-label">简介</text>
+				<text class="info-content">{{dish.description || '暂无简介'}}</text>
+			</view>
+			<view class="dish-stats">
+				<view class="stat-item">
+					<text class="stat-number">{{dish.viewCount || 0}}</text>
+					<text class="stat-label">浏览</text>
+				</view>
+				<view class="stat-item">
+					<text class="stat-number">{{dish.collectCount || 0}}</text>
+					<text class="stat-label">收藏</text>
+				</view>
+				<view class="stat-item">
+					<text class="stat-number">{{dish.shareCount || 0}}</text>
+					<text class="stat-label">分享</text>
+				</view>
+			</view>
+		</view>
+
+		<!-- 食材列表 -->
+		<view class="ingredients-section" v-if="ingredients.length > 0">
+			<text class="section-title">所需食材</text>
+			<view class="ingredients-list">
+				<view class="ingredient-item" v-for="item in ingredients" :key="item.id">
+					<text class="ingredient-name">{{item.name}}</text>
+					<text class="ingredient-amount">{{item.amount}}{{item.unit}}</text>
+				</view>
+			</view>
+		</view>
+
+		<!-- 制作步骤 -->
+		<view class="steps-section" v-if="steps.length > 0">
+			<text class="section-title">制作步骤</text>
+			<view class="steps-list">
+				<view class="step-item" v-for="(item, index) in steps" :key="item.id">
+					<view class="step-number">{{index + 1}}</view>
+					<view class="step-content">
+						<text class="step-description">{{item.description}}</text>
+						<image 
+							v-if="item.image" 
+							class="step-image" 
+							:src="getImageUrl(item.image)" 
+							mode="aspectFill"
+							@tap="onPreviewImage"
+							:data-url="getImageUrl(item.image)"
+						></image>
+					</view>
+				</view>
+			</view>
+		</view>
+
+		<!-- 底部操作栏 -->
+		<view class="bottom-actions" v-if="dish">
+			<view class="action-btn" @tap="onToggleFavorite">
+				<text class="action-icon" :class="isFavorite ? 'favorited' : ''">❤️</text>
+				<text class="action-text">{{isFavorite ? '已收藏' : '收藏'}}</text>
+			</view>
+			<button class="action-btn" open-type="share">
+				<text class="action-icon">📤</text>
+				<text class="action-text">分享</text>
+			</button>
+		</view>
+
+		<!-- 加载状态 -->
+		<view class="loading" v-if="loading">
+			<text>加载中...</text>
+		</view>
+	</view>
+</template>
+
+<script>
+	import { getDishById, getDishSteps, getDishIngredients, toggleFavorite, increaseViewCount, recordViewHistory } from '../../api/dish.js'
+	import { getImageUrl, getDifficultyText, getDifficultyColor } from '../../utils/util.js'
+
+	export default {
+		data() {
+			return {
+				dishId: null,
+				dish: null,
+				steps: [],
+				ingredients: [],
+				loading: true,
+				isFavorite: false,
+				// 浏览记录相关
+				enterTime: null,
+				hasRecordedView: false,
+				viewTimer: null
+			}
+		},
+		onLoad(options) {
+			if (options.id) {
+				this.dishId = options.id
+				this.enterTime = Date.now()
+				this.hasRecordedView = false
+				this.loadDishDetail()
+				this.checkFavoriteStatus()
+			}
+		},
+		onShow() {
+			// 重置进入时间（从其他页面返回时）
+			if (this.dishId && !this.enterTime) {
+				this.enterTime = Date.now()
+				this.startViewTimer()
+			}
+			// 检查收藏状态
+			this.checkFavoriteStatus()
+		},
+		onHide() {
+			// 页面隐藏时清除定时器
+			this.clearViewTimer()
+		},
+		onUnload() {
+			// 页面卸载时清除定时器
+			this.clearViewTimer()
+		},
+		methods: {
+			// 加载菜品详情
+			async loadDishDetail() {
+				try {
+					this.loading = true
+					
+					const [dishRes, stepsRes, ingredientsRes] = await Promise.all([
+						getDishById(this.dishId),
+						getDishSteps(this.dishId),
+						getDishIngredients(this.dishId)
+					])
+
+					this.dish = dishRes.data
+					this.steps = stepsRes.data || []
+					this.ingredients = ingredientsRes.data || []
+					this.loading = false
+
+					// 设置页面标题
+					if (dishRes.data?.name) {
+						uni.setNavigationBarTitle({
+							title: dishRes.data.name
+						})
+					}
+
+					// 页面加载完成后开始浏览计时
+					this.startViewTimer()
+				} catch (error) {
+					console.error('加载菜品详情失败:', error)
+					this.loading = false
+					uni.showToast({
+						title: '加载失败，请重试',
+						icon: 'none'
+					})
+				}
+			},
+
+			// 开始浏览计时
+			startViewTimer() {
+				if (this.hasRecordedView) return
+				
+				// 5秒后记录有效浏览（增加时间以确保是有意义的浏览）
+				this.viewTimer = setTimeout(() => {
+					this.recordValidView()
+				}, 5000)
+			},
+
+			// 清除浏览计时器
+			clearViewTimer() {
+				if (this.viewTimer) {
+					clearTimeout(this.viewTimer)
+					this.viewTimer = null
+				}
+			},
+
+			// 记录有效浏览
+			async recordValidView() {
+				if (this.hasRecordedView || !this.dishId) return
+				
+				this.hasRecordedView = true
+				
+				try {
+					// 增加浏览量
+					await increaseViewCount(this.dishId)
+					
+					// 更新本地显示的浏览量
+					if (this.dish) {
+						this.dish.viewCount = (this.dish.viewCount || 0) + 1
+					}
+					
+					// 记录用户浏览历史（尝试调用后端接口）
+					try {
+						await recordViewHistory(this.dishId)
+					} catch (error) {
+						console.log('记录浏览历史失败，可能用户未登录:', error)
+						// 记录到本地存储作为备选
+						this.recordLocalViewHistory()
+					}
+				} catch (error) {
+					console.error('记录浏览失败:', error)
+				}
+			},
+
+			// 记录本地浏览历史
+			recordLocalViewHistory() {
+				try {
+					const viewHistory = uni.getStorageSync('viewHistory') || []
+					const dishId = this.dishId
+					const dish = this.dish
+					
+					if (!dish) return
+					
+					// 查找是否已存在
+					const existingIndex = viewHistory.findIndex(item => item.id == dishId)
+					
+					const historyItem = {
+						id: dish.id,
+						name: dish.name,
+						image: dish.image,
+						description: dish.description,
+						difficulty: dish.difficulty,
+						cookingTime: dish.cookingTime,
+						categoryName: dish.categoryName,
+						viewTime: new Date().toISOString(),
+						viewCount: 1
+					}
+					
+					if (existingIndex >= 0) {
+						// 更新现有记录
+						viewHistory[existingIndex] = {
+							...viewHistory[existingIndex],
+							viewTime: historyItem.viewTime,
+							viewCount: (viewHistory[existingIndex].viewCount || 0) + 1
+						}
+					} else {
+						// 添加新记录
+						viewHistory.unshift(historyItem)
+					}
+					
+					// 只保留最近100条记录
+					if (viewHistory.length > 100) {
+						viewHistory.splice(100)
+					}
+					
+					uni.setStorageSync('viewHistory', viewHistory)
+				} catch (error) {
+					console.error('记录本地浏览历史失败:', error)
+				}
+			},
+
+			// 检查收藏状态
+			checkFavoriteStatus() {
+				const favorites = uni.getStorageSync('favorites') || []
+				const isFavorite = favorites.some(item => item.id == this.dishId)
+				this.isFavorite = isFavorite
+			},
+
+			// 收藏/取消收藏
+			async onToggleFavorite() {
+				if (!this.dish) return
+				
+				try {
+					let favorites = uni.getStorageSync('favorites') || []
+					const dishId = this.dishId
+					const isFavorite = favorites.some(item => item.id == dishId)
+					
+					// 先尝试调用后端接口
+					let backendResult = null
+					try {
+						const response = await toggleFavorite(this.dishId)
+						backendResult = response.data
+						console.log('后端收藏接口调用成功:', backendResult)
+					} catch (error) {
+						console.log('后端收藏接口调用失败，使用本地存储:', error)
+					}
+					
+					// 根据后端结果或本地状态更新界面
+					let newIsFavorite = isFavorite
+					let newCollectCount = this.dish.collectCount || 0
+					let message = ''
+					
+					if (backendResult) {
+						// 使用后端返回的状态
+						newIsFavorite = backendResult.isFavorite
+						newCollectCount = backendResult.collectCount
+						message = backendResult.message
+					} else {
+						// 使用本地逻辑
+						newIsFavorite = !isFavorite
+						if (newIsFavorite) {
+							newCollectCount = newCollectCount + 1
+							message = '已添加收藏'
+						} else {
+							newCollectCount = Math.max(0, newCollectCount - 1)
+							message = '已取消收藏'
+						}
+					}
+					
+					// 更新本地存储
+					if (newIsFavorite) {
+						// 添加收藏
+						const favoriteItem = {
+							id: this.dish.id,
+							name: this.dish.name,
+							image: this.dish.image,
+							description: this.dish.description,
+							difficulty: this.dish.difficulty,
+							cookingTime: this.dish.cookingTime,
+							categoryName: this.dish.categoryName,
+							viewCount: this.dish.viewCount,
+							collectCount: newCollectCount,
+							createTime: new Date().toISOString()
+						}
+						
+						// 移除已存在的项目（如果有）
+						favorites = favorites.filter(item => item.id != dishId)
+						favorites.unshift(favoriteItem)
+					} else {
+						// 取消收藏
+						favorites = favorites.filter(item => item.id != dishId)
+					}
+					
+					uni.setStorageSync('favorites', favorites)
+					
+					// 更新界面状态
+					this.isFavorite = newIsFavorite
+					this.dish.collectCount = newCollectCount
+					
+					uni.showToast({
+						title: message,
+						icon: 'success'
+					})
+					
+				} catch (error) {
+					console.error('收藏操作失败:', error)
+					uni.showToast({
+						title: '操作失败',
+						icon: 'none'
+					})
+				}
+			},
+
+			// 预览图片
+			onPreviewImage(e) {
+				const { url } = e.currentTarget.dataset
+				uni.previewImage({
+					current: url,
+					urls: [url]
+				})
+			},
+
+			// 分享
+			onShareAppMessage() {
+				return {
+					title: `推荐一道美味的${this.dish?.name}`,
+					path: `/pages/dish-detail/dish-detail?id=${this.dishId}`,
+					imageUrl: getImageUrl(this.dish?.image)
+				}
+			},
+
+			// 获取图片URL
+			getImageUrl(imagePath) {
+				return getImageUrl(imagePath)
+			},
+
+			// 获取难度文本
+			getDifficultyText(difficulty) {
+				return getDifficultyText(difficulty)
+			},
+
+			// 获取难度颜色
+			getDifficultyColor(difficulty) {
+				return getDifficultyColor(difficulty)
+			}
+		}
+	}
+</script>
+
+<style lang="scss" scoped>
+	@import url("./dish-detail.scss");
+</style>

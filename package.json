@@ -1,0 +1,43 @@
+{
+  "name": "cooking-uniapp",
+  "version": "1.0.0",
+  "description": "厨小教 - 零基础学做菜超简单",
+  "main": "main.js",
+  "scripts": {
+    "build:mp-weixin": "uni build -p mp-weixin",
+    "build:mp-alipay": "uni build -p mp-alipay",
+    "build:mp-baidu": "uni build -p mp-baidu",
+    "build:mp-toutiao": "uni build -p mp-toutiao",
+    "build:mp-qq": "uni build -p mp-qq",
+    "build:h5": "uni build -p h5",
+    "build:app-plus": "uni build -p app-plus",
+    "dev:mp-weixin": "uni -p mp-weixin",
+    "dev:mp-alipay": "uni -p mp-alipay",
+    "dev:mp-baidu": "uni -p mp-baidu",
+    "dev:mp-toutiao": "uni -p mp-toutiao",
+    "dev:mp-qq": "uni -p mp-qq",
+    "dev:h5": "uni -p h5",
+    "dev:app-plus": "uni -p app-plus"
+  },
+  "keywords": [
+    "uniapp",
+    "cooking",
+    "miniprogram",
+    "vue3"
+  ],
+  "author": "cooking-team",
+  "license": "MIT",
+  "dependencies": {
+    "@dcloudio/uni-app": "^3.0.0",
+    "@dcloudio/uni-components": "^3.0.0",
+    "@dcloudio/uni-h5": "^3.0.0",
+    "@dcloudio/uni-mp-weixin": "^3.0.0",
+    "vue": "^3.2.0"
+  },
+  "devDependencies": {
+    "@dcloudio/uni-cli-shared": "^3.0.0",
+    "@dcloudio/vite-plugin-uni": "^3.0.0",
+    "vite": "^4.0.0",
+    "sass": "^1.56.0"
+  }
+}
