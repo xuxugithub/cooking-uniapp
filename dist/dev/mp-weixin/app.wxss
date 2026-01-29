@@ -24,10 +24,10 @@
   white-space: nowrap;
 }
 .primary-color {
-  color: #ff6b35;
+  color: #ff69b4;
 }
 .primary-bg {
-  background-color: #ff6b35;
+  background-color: #ff69b4;
 }
 /* 重置样式 */
 page, view, text, image, button, input {
@@ -66,8 +66,8 @@ page {
 }
 /* 主题色 */
 .primary-color {
-  color: #ff6b35;
+  color: #ff69b4;
 }
 .primary-bg {
-  background-color: #ff6b35;
+  background-color: #ff69b4;
 }page{--status-bar-height:25px;--top-window-height:0px;--window-top:0px;--window-bottom:0px;--window-left:0px;--window-right:0px;--window-magin:0px}[data-c-h="true"]{display: none !important;}

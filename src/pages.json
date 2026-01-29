@@ -4,7 +4,7 @@
 			"path": "pages/index/index",
 			"style": {
 				"navigationBarTitleText": "厨小教",
-				"navigationBarBackgroundColor": "#ff6b35",
+				"navigationBarBackgroundColor": "#ff69b4",
 				"navigationBarTextStyle": "white",
 				"backgroundColor": "#f5f5f5"
 			}
@@ -66,7 +66,7 @@
 	},
 	"tabBar": {
 		"color": "#666",
-		"selectedColor": "#ff6b35",
+		"selectedColor": "#ff69b4",
 		"borderStyle": "white",
 		"backgroundColor": "#fff",
 		"list": [

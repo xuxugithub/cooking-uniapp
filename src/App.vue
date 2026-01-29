@@ -59,7 +59,7 @@
 		globalData: {
 			userInfo: null,
 			systemInfo: null,
-			baseUrl: 'http://localhost:8080'
+			baseUrl: 'https://cook.web.xuaq.top'
 		}
 	}
 </script>
@@ -112,10 +112,10 @@
 	
 	/* 主题色 */
 	.primary-color {
-		color: #ff6b35;
+		color: #ff69b4;
 	}
 	
 	.primary-bg {
-		background-color: #ff6b35;
+		background-color: #ff69b4;
 	}
 </style>

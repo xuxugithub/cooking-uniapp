@@ -1,5 +1,5 @@
 // 请求工具类
-const BASE_URL = 'http://localhost:8080/api'
+const BASE_URL = 'https://cook.web.xuaq.top/api'
 
 // 请求拦截器
 const request = (options) => {

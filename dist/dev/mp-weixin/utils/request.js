@@ -1,6 +1,6 @@
 "use strict";
 const common_vendor = require("../common/vendor.js");
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = "https://cook.web.xuaq.top/api";
 const request = (options) => {
   return new Promise((resolve, reject) => {
     if (options.loading !== false) {
