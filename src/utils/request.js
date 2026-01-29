@@ -1,5 +1,5 @@
 // 请求工具类
-const BASE_URL = 'http://localhost:8080'
+const BASE_URL = 'http://localhost:8080/api'
 
 // 请求拦截器
 const request = (options) => {
