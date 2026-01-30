@@ -59,7 +59,7 @@
 		globalData: {
 			userInfo: null,
 			systemInfo: null,
-			baseUrl: 'https://cook.web.xuaq.top'
+			baseUrl: 'https://cook.xuaq.top'
 		}
 	}
 </script>

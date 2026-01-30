@@ -57,7 +57,7 @@ const _sfc_main = {
   globalData: {
     userInfo: null,
     systemInfo: null,
-    baseUrl: "https://cook.web.xuaq.top"
+    baseUrl: "https://cook.xuaq.top"
   }
 };
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
@@ -66,7 +66,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
 const App = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);
 function createApp() {
   const app = common_vendor.createSSRApp(App);
-  app.config.globalProperties.$baseUrl = "https://cook.web.xuaq.top";
+  app.config.globalProperties.$baseUrl = "https://cook.xuaq.top";
   return {
     app
   };

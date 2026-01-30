@@ -5,7 +5,7 @@ export function createApp() {
   const app = createSSRApp(App)
   
   // 全局配置
-  app.config.globalProperties.$baseUrl = 'https://cook.web.xuaq.top'
+  app.config.globalProperties.$baseUrl = 'https://cook.xuaq.top'
   
   return {
     app
