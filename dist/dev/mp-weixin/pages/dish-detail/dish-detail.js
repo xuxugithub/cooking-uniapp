@@ -31,7 +31,9 @@ const _sfc_main = {
       this.enterTime = Date.now();
       this.startViewTimer();
     }
-    this.checkFavoriteStatus();
+    if (this.dishId) {
+      this.loadDishDetail();
+    }
   },
   onHide() {
     this.clearViewTimer();
@@ -53,6 +55,19 @@ const _sfc_main = {
         this.dish = dishRes.data;
         this.steps = stepsRes.data || [];
         this.ingredients = ingredientsRes.data || [];
+        if (dishRes.data && dishRes.data.isFavorite !== void 0) {
+          this.isFavorite = dishRes.data.isFavorite;
+        } else {
+          this.isFavorite = false;
+          this.checkFavoriteStatus();
+        }
+        if (!this.dish) {
+          console.error("菜品数据为空");
+          common_vendor.index.showToast({
+            title: "菜品不存在",
+            icon: "none"
+          });
+        }
         this.loading = false;
         if ((_a = dishRes.data) == null ? void 0 : _a.name) {
           common_vendor.index.setNavigationBarTitle({
@@ -63,6 +78,7 @@ const _sfc_main = {
       } catch (error) {
         console.error("加载菜品详情失败:", error);
         this.loading = false;
+        this.dish = null;
         common_vendor.index.showToast({
           title: "加载失败，请重试",
           icon: "none"
@@ -152,59 +168,49 @@ const _sfc_main = {
       if (!this.dish)
         return;
       try {
-        let favorites = common_vendor.index.getStorageSync("favorites") || [];
-        const dishId = this.dishId;
-        const isFavorite = favorites.some((item) => item.id == dishId);
         let backendResult = null;
         try {
           const response = await api_dish.toggleFavorite(this.dishId);
           backendResult = response.data;
           console.log("后端收藏接口调用成功:", backendResult);
         } catch (error) {
-          console.log("后端收藏接口调用失败，使用本地存储:", error);
+          console.log("后端收藏接口调用失败:", error);
+          common_vendor.index.showToast({
+            title: error.message || "操作失败，请先登录",
+            icon: "none"
+          });
+          return;
         }
-        let newIsFavorite = isFavorite;
-        let newCollectCount = this.dish.collectCount || 0;
-        let message = "";
         if (backendResult) {
-          newIsFavorite = backendResult.isFavorite;
-          newCollectCount = backendResult.collectCount;
-          message = backendResult.message;
-        } else {
-          newIsFavorite = !isFavorite;
-          if (newIsFavorite) {
-            newCollectCount = newCollectCount + 1;
-            message = "已添加收藏";
-          } else {
-            newCollectCount = Math.max(0, newCollectCount - 1);
-            message = "已取消收藏";
+          this.isFavorite = backendResult.isFavorite;
+          if (backendResult.collectCount !== void 0) {
+            this.dish.collectCount = backendResult.collectCount;
           }
+          let favorites = common_vendor.index.getStorageSync("favorites") || [];
+          if (this.isFavorite) {
+            const favoriteItem = {
+              id: this.dish.id,
+              name: this.dish.name,
+              image: this.dish.image,
+              description: this.dish.description,
+              difficulty: this.dish.difficulty,
+              cookingTime: this.dish.cookingTime,
+              categoryName: this.dish.categoryName,
+              viewCount: this.dish.viewCount,
+              collectCount: this.dish.collectCount,
+              createTime: (/* @__PURE__ */ new Date()).toISOString()
+            };
+            favorites = favorites.filter((item) => item.id != this.dishId);
+            favorites.unshift(favoriteItem);
+          } else {
+            favorites = favorites.filter((item) => item.id != this.dishId);
+          }
+          common_vendor.index.setStorageSync("favorites", favorites);
+          common_vendor.index.showToast({
+            title: backendResult.message || (this.isFavorite ? "收藏成功" : "取消收藏成功"),
+            icon: "success"
+          });
         }
-        if (newIsFavorite) {
-          const favoriteItem = {
-            id: this.dish.id,
-            name: this.dish.name,
-            image: this.dish.image,
-            description: this.dish.description,
-            difficulty: this.dish.difficulty,
-            cookingTime: this.dish.cookingTime,
-            categoryName: this.dish.categoryName,
-            viewCount: this.dish.viewCount,
-            collectCount: newCollectCount,
-            createTime: (/* @__PURE__ */ new Date()).toISOString()
-          };
-          favorites = favorites.filter((item) => item.id != dishId);
-          favorites.unshift(favoriteItem);
-        } else {
-          favorites = favorites.filter((item) => item.id != dishId);
-        }
-        common_vendor.index.setStorageSync("favorites", favorites);
-        this.isFavorite = newIsFavorite;
-        this.dish.collectCount = newCollectCount;
-        common_vendor.index.showToast({
-          title: message,
-          icon: "success"
-        });
       } catch (error) {
         console.error("收藏操作失败:", error);
         common_vendor.index.showToast({
@@ -291,11 +297,12 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   } : {}, {
     q: $data.dish
   }, $data.dish ? {
-    r: common_vendor.n($data.isFavorite ? "favorited" : ""),
-    s: common_vendor.t($data.isFavorite ? "已收藏" : "收藏"),
-    t: common_vendor.o((...args) => $options.onToggleFavorite && $options.onToggleFavorite(...args), "2c")
+    r: common_vendor.t($data.isFavorite ? "❤️" : "🤍"),
+    s: $data.isFavorite ? 1 : "",
+    t: common_vendor.t($data.isFavorite ? "已收藏" : "收藏"),
+    v: common_vendor.o((...args) => $options.onToggleFavorite && $options.onToggleFavorite(...args), "48")
   } : {}, {
-    v: $data.loading
+    w: $data.loading
   }, $data.loading ? {} : {});
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-c783fa68"]]);

@@ -16,7 +16,7 @@ const request = (options) => {
       data: options.data || {},
       header: {
         "Content-Type": "application/json",
-        "Authorization": token ? `Bearer ${token}` : "",
+        "token": token || "",
         ...options.header
       },
       success: (res) => {

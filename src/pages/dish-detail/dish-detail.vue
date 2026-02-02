@@ -71,13 +71,15 @@
 
 		<!-- 底部操作栏 -->
 		<view class="bottom-actions" v-if="dish">
-			<view class="action-btn" @tap="onToggleFavorite">
-				<text class="action-icon" :class="isFavorite ? 'favorited' : ''">❤️</text>
-				<text class="action-text">{{isFavorite ? '已收藏' : '收藏'}}</text>
+			<view class="action-btn" @tap.stop="onToggleFavorite">
+				<view class="heart-icon" :class="{ 'favorited': isFavorite }">
+					{{ isFavorite ? '❤️' : '🤍' }}
+				</view>
+				<view class="action-text">{{isFavorite ? '已收藏' : '收藏'}}</view>
 			</view>
 			<button class="action-btn" open-type="share">
-				<text class="action-icon">📤</text>
-				<text class="action-text">分享</text>
+				<view class="action-icon">📤</view>
+				<view class="action-text">分享</view>
 			</button>
 		</view>
 
@@ -122,8 +124,10 @@
 				this.enterTime = Date.now()
 				this.startViewTimer()
 			}
-			// 检查收藏状态
-			this.checkFavoriteStatus()
+			// 重新加载详情以获取最新的收藏状态
+			if (this.dishId) {
+				this.loadDishDetail()
+			}
 		},
 		onHide() {
 			// 页面隐藏时清除定时器
@@ -148,6 +152,25 @@
 					this.dish = dishRes.data
 					this.steps = stepsRes.data || []
 					this.ingredients = ingredientsRes.data || []
+					
+					// 从后端返回的数据中获取收藏状态
+					if (dishRes.data && dishRes.data.isFavorite !== undefined) {
+						this.isFavorite = dishRes.data.isFavorite
+					} else {
+						// 如果后端没有返回，则从本地存储获取
+						this.isFavorite = false
+						this.checkFavoriteStatus()
+					}
+					
+					// 确保 dish 对象存在，以便底部按钮显示
+					if (!this.dish) {
+						console.error('菜品数据为空')
+						uni.showToast({
+							title: '菜品不存在',
+							icon: 'none'
+						})
+					}
+					
 					this.loading = false
 
 					// 设置页面标题
@@ -162,6 +185,7 @@
 				} catch (error) {
 					console.error('加载菜品详情失败:', error)
 					this.loading = false
+					this.dish = null
 					uni.showToast({
 						title: '加载失败，请重试',
 						icon: 'none'
@@ -274,10 +298,6 @@
 				if (!this.dish) return
 				
 				try {
-					let favorites = uni.getStorageSync('favorites') || []
-					const dishId = this.dishId
-					const isFavorite = favorites.some(item => item.id == dishId)
-					
 					// 先尝试调用后端接口
 					let backendResult = null
 					try {
@@ -285,65 +305,54 @@
 						backendResult = response.data
 						console.log('后端收藏接口调用成功:', backendResult)
 					} catch (error) {
-						console.log('后端收藏接口调用失败，使用本地存储:', error)
+						console.log('后端收藏接口调用失败:', error)
+						uni.showToast({
+							title: error.message || '操作失败，请先登录',
+							icon: 'none'
+						})
+						return
 					}
 					
-					// 根据后端结果或本地状态更新界面
-					let newIsFavorite = isFavorite
-					let newCollectCount = this.dish.collectCount || 0
-					let message = ''
-					
+					// 根据后端结果更新界面
 					if (backendResult) {
 						// 使用后端返回的状态
-						newIsFavorite = backendResult.isFavorite
-						newCollectCount = backendResult.collectCount
-						message = backendResult.message
-					} else {
-						// 使用本地逻辑
-						newIsFavorite = !isFavorite
-						if (newIsFavorite) {
-							newCollectCount = newCollectCount + 1
-							message = '已添加收藏'
-						} else {
-							newCollectCount = Math.max(0, newCollectCount - 1)
-							message = '已取消收藏'
-						}
-					}
-					
-					// 更新本地存储
-					if (newIsFavorite) {
-						// 添加收藏
-						const favoriteItem = {
-							id: this.dish.id,
-							name: this.dish.name,
-							image: this.dish.image,
-							description: this.dish.description,
-							difficulty: this.dish.difficulty,
-							cookingTime: this.dish.cookingTime,
-							categoryName: this.dish.categoryName,
-							viewCount: this.dish.viewCount,
-							collectCount: newCollectCount,
-							createTime: new Date().toISOString()
+						this.isFavorite = backendResult.isFavorite
+						if (backendResult.collectCount !== undefined) {
+							this.dish.collectCount = backendResult.collectCount
 						}
 						
-						// 移除已存在的项目（如果有）
-						favorites = favorites.filter(item => item.id != dishId)
-						favorites.unshift(favoriteItem)
-					} else {
-						// 取消收藏
-						favorites = favorites.filter(item => item.id != dishId)
+						// 更新本地存储
+						let favorites = uni.getStorageSync('favorites') || []
+						if (this.isFavorite) {
+							// 添加收藏
+							const favoriteItem = {
+								id: this.dish.id,
+								name: this.dish.name,
+								image: this.dish.image,
+								description: this.dish.description,
+								difficulty: this.dish.difficulty,
+								cookingTime: this.dish.cookingTime,
+								categoryName: this.dish.categoryName,
+								viewCount: this.dish.viewCount,
+								collectCount: this.dish.collectCount,
+								createTime: new Date().toISOString()
+							}
+							
+							// 移除已存在的项目（如果有）
+							favorites = favorites.filter(item => item.id != this.dishId)
+							favorites.unshift(favoriteItem)
+						} else {
+							// 取消收藏
+							favorites = favorites.filter(item => item.id != this.dishId)
+						}
+						
+						uni.setStorageSync('favorites', favorites)
+						
+						uni.showToast({
+							title: backendResult.message || (this.isFavorite ? '收藏成功' : '取消收藏成功'),
+							icon: 'success'
+						})
 					}
-					
-					uni.setStorageSync('favorites', favorites)
-					
-					// 更新界面状态
-					this.isFavorite = newIsFavorite
-					this.dish.collectCount = newCollectCount
-					
-					uni.showToast({
-						title: message,
-						icon: 'success'
-					})
 					
 				} catch (error) {
 					console.error('收藏操作失败:', error)

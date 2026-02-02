@@ -7,7 +7,7 @@ const getUserInfo = () => {
   return utils_request.get("/api/app/user/info");
 };
 const getUserFavorites = (params = {}) => {
-  return utils_request.get("/api/app/user/favorites", params);
+  return utils_request.get("/api/app/favorite/list", params);
 };
 exports.getUserFavorites = getUserFavorites;
 exports.getUserInfo = getUserInfo;

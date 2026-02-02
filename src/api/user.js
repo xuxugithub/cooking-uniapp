@@ -17,5 +17,5 @@ export const updateUserInfo = (userInfo) => {
 
 // 获取用户收藏列表
 export const getUserFavorites = (params = {}) => {
-  return get('/api/app/user/favorites', params)
+  return get('/api/app/favorite/list', params)
 }
