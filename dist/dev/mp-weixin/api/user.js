@@ -1,7 +1,11 @@
 "use strict";
 const utils_request = require("../utils/request.js");
-const wxLogin = (code) => {
-  return utils_request.post("/api/app/user/wx-login", { code });
+const wxLogin = (code, userInfo = null) => {
+  const data = { code };
+  if (userInfo) {
+    data.userInfo = userInfo;
+  }
+  return utils_request.post("/api/app/user/wx-login", data);
 };
 const getUserInfo = () => {
   return utils_request.get("/api/app/user/info");

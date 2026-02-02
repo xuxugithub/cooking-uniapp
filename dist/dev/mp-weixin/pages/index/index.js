@@ -63,7 +63,7 @@ const _sfc_main = {
         console.log("Banner数据:", bannerRes);
         console.log("分类数据:", categoryRes);
         this.banners = bannerRes.data || [];
-        this.categories = (categoryRes.data || []).slice(0, 8);
+        this.categories = categoryRes.data || [];
         this.loading = false;
         this.pagination = { ...this.pagination, current: 1 };
         this.allDishes = [];
@@ -77,6 +77,12 @@ const _sfc_main = {
       } catch (error) {
         console.error("加载数据失败:", error);
         this.loading = false;
+        if (!this.banners || this.banners.length === 0)
+          this.banners = [];
+        if (!this.categories || this.categories.length === 0)
+          this.categories = [];
+        if (!this.allDishes || this.allDishes.length === 0)
+          this.allDishes = [];
         common_vendor.index.showToast({
           title: "加载失败，请重试",
           icon: "none"
@@ -172,8 +178,16 @@ const _sfc_main = {
     // 分类点击事件
     onCategoryTap(e) {
       const { category } = e.currentTarget.dataset;
-      common_vendor.index.navigateTo({
-        url: `/pages/category/category?categoryId=${category.id}&categoryName=${category.name}`
+      if (!category || !category.id) {
+        console.error("分类数据无效:", category);
+        return;
+      }
+      common_vendor.index.setStorageSync("selectedCategory", {
+        id: category.id,
+        name: category.name
+      });
+      common_vendor.index.switchTab({
+        url: "/pages/category/category"
       });
     },
     // 菜品点击事件
@@ -233,24 +247,26 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     })
   } : {}, {
     h: $data.categories.length > 0
-  }, $data.categories.length > 0 ? common_vendor.e({
-    i: _ctx.index < 6
-  }, _ctx.index < 6 ? {
-    j: common_vendor.f($data.categories, (item, index, i0) => {
-      return {
-        a: $options.getImageUrl(item.image),
-        b: common_vendor.t(item.name),
-        c: item.id,
-        d: common_vendor.o((...args) => $options.onCategoryTap && $options.onCategoryTap(...args), item.id),
-        e: item
-      };
-    })
+  }, $data.categories.length > 0 ? {
+    i: common_vendor.f($data.categories, (item, k0, i0) => {
+      return common_vendor.e({
+        a: item.icon
+      }, item.icon ? {
+        b: $options.getImageUrl(item.icon)
+      } : {
+        c: common_vendor.t(item.name.charAt(0))
+      }, {
+        d: common_vendor.t(item.name),
+        e: item.id,
+        f: common_vendor.o((...args) => $options.onCategoryTap && $options.onCategoryTap(...args), item.id),
+        g: item
+      });
+    }),
+    j: common_vendor.o((...args) => $options.goToCategory && $options.goToCategory(...args), "c1")
   } : {}, {
-    k: common_vendor.o((...args) => $options.goToCategory && $options.goToCategory(...args), "90")
-  }) : {}, {
-    l: $data.allDishes.length > 0
+    k: $data.allDishes.length > 0
   }, $data.allDishes.length > 0 ? common_vendor.e({
-    m: common_vendor.f($data.sortOptions, (item, k0, i0) => {
+    l: common_vendor.f($data.sortOptions, (item, k0, i0) => {
       return {
         a: common_vendor.t(item.name),
         b: common_vendor.n($data.currentSortType === item.key ? "active" : ""),
@@ -259,7 +275,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         e: item.key
       };
     }),
-    n: common_vendor.f($data.allDishes, (item, k0, i0) => {
+    m: common_vendor.f($data.allDishes, (item, k0, i0) => {
       return {
         a: $options.getImageUrl(item.image),
         b: common_vendor.t(item.name),
@@ -272,13 +288,13 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         i: item
       };
     }),
-    o: $data.loadingMore
+    n: $data.loadingMore
   }, $data.loadingMore ? {} : {}, {
-    p: !$data.hasMore && $data.allDishes.length > 0
+    o: !$data.hasMore && $data.allDishes.length > 0
   }, !$data.hasMore && $data.allDishes.length > 0 ? {} : {}) : {}, {
-    q: $data.loading
+    p: $data.loading
   }, $data.loading ? {} : {}, {
-    r: !$data.loading && $data.banners.length === 0 && $data.categories.length === 0 && $data.allDishes.length === 0
+    q: !$data.loading && $data.banners.length === 0 && $data.categories.length === 0 && $data.allDishes.length === 0
   }, !$data.loading && $data.banners.length === 0 && $data.categories.length === 0 && $data.allDishes.length === 0 ? {} : {});
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-83a5a03c"]]);

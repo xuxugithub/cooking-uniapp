@@ -45,24 +45,76 @@ const _sfc_main = {
     // 获取用户信息
     async onGetUserProfile() {
       try {
+        const userProfileRes = await common_vendor.index.getUserProfile({
+          desc: "用于完善用户资料"
+        });
+        if (!userProfileRes.userInfo) {
+          throw new Error("获取用户信息失败");
+        }
         const loginRes = await common_vendor.index.login();
-        if (loginRes.code) {
-          const res = await api_user.wxLogin(loginRes.code);
-          if (res.data && res.data.token) {
-            common_vendor.index.setStorageSync("token", res.data.token);
-            common_vendor.index.setStorageSync("userInfo", res.data.userInfo);
-            this.hasUserInfo = true;
-            this.userInfo = res.data.userInfo;
-            common_vendor.index.showToast({
-              title: "登录成功",
-              icon: "success"
-            });
+        if (!loginRes.code) {
+          throw new Error("获取微信登录凭证失败");
+        }
+        const loginData = {
+          code: loginRes.code,
+          userInfo: {
+            nickName: userProfileRes.userInfo.nickName,
+            avatarUrl: userProfileRes.userInfo.avatarUrl,
+            gender: userProfileRes.userInfo.gender,
+            country: userProfileRes.userInfo.country,
+            province: userProfileRes.userInfo.province,
+            city: userProfileRes.userInfo.city
           }
+        };
+        const res = await api_user.wxLogin(loginRes.code, loginData.userInfo);
+        if (res.data && res.data.token) {
+          common_vendor.index.setStorageSync("token", res.data.token);
+          common_vendor.index.setStorageSync("userInfo", res.data.userInfo);
+          this.hasUserInfo = true;
+          this.userInfo = res.data.userInfo;
+          this.loadUserStats();
+          common_vendor.index.showToast({
+            title: "登录成功",
+            icon: "success"
+          });
+        } else {
+          throw new Error("登录接口返回数据异常");
         }
       } catch (error) {
         console.error("登录失败:", error);
+        if (error.errMsg && error.errMsg.includes("getUserProfile:fail cancel")) {
+          common_vendor.index.showToast({
+            title: "需要授权才能使用完整功能",
+            icon: "none",
+            duration: 2e3
+          });
+          return;
+        }
+        if (error.errMsg && error.errMsg.includes("getUserProfile:fail")) {
+          try {
+            console.log("尝试简化登录...");
+            const loginRes = await common_vendor.index.login();
+            if (loginRes.code) {
+              const res = await api_user.wxLogin(loginRes.code);
+              if (res.data && res.data.token) {
+                common_vendor.index.setStorageSync("token", res.data.token);
+                common_vendor.index.setStorageSync("userInfo", res.data.userInfo);
+                this.hasUserInfo = true;
+                this.userInfo = res.data.userInfo;
+                this.loadUserStats();
+                common_vendor.index.showToast({
+                  title: "登录成功",
+                  icon: "success"
+                });
+                return;
+              }
+            }
+          } catch (fallbackError) {
+            console.error("简化登录也失败:", fallbackError);
+          }
+        }
         common_vendor.index.showToast({
-          title: "登录失败",
+          title: error.message || "登录失败",
           icon: "none"
         });
       }

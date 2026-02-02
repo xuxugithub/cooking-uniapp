@@ -218,19 +218,23 @@
 				this.hasRecordedView = true
 				
 				try {
-					// 增加浏览量
-					await increaseViewCount(this.dishId)
-					
-					// 更新本地显示的浏览量
-					if (this.dish) {
-						this.dish.viewCount = (this.dish.viewCount || 0) + 1
-					}
-					
-					// 记录用户浏览历史（尝试调用后端接口）
+					// 记录用户浏览历史（后端会根据15分钟规则自动处理浏览量增加）
 					try {
-						await recordViewHistory(this.dishId)
+						const response = await recordViewHistory(this.dishId)
+						console.log('浏览历史记录成功:', response)
+						
+						// 重新获取菜品信息以更新浏览量（如果后端增加了的话）
+						const dishRes = await getDishById(this.dishId)
+						if (dishRes.data) {
+							this.dish.viewCount = dishRes.data.viewCount
+						}
 					} catch (error) {
 						console.log('记录浏览历史失败，可能用户未登录:', error)
+						// 未登录用户，直接增加浏览量（无法应用15分钟规则）
+						await increaseViewCount(this.dishId)
+						if (this.dish) {
+							this.dish.viewCount = (this.dish.viewCount || 0) + 1
+						}
 						// 记录到本地存储作为备选
 						this.recordLocalViewHistory()
 					}

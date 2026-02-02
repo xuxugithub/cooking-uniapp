@@ -106,14 +106,19 @@ const _sfc_main = {
         return;
       this.hasRecordedView = true;
       try {
-        await api_dish.increaseViewCount(this.dishId);
-        if (this.dish) {
-          this.dish.viewCount = (this.dish.viewCount || 0) + 1;
-        }
         try {
-          await api_dish.recordViewHistory(this.dishId);
+          const response = await api_dish.recordViewHistory(this.dishId);
+          console.log("浏览历史记录成功:", response);
+          const dishRes = await api_dish.getDishById(this.dishId);
+          if (dishRes.data) {
+            this.dish.viewCount = dishRes.data.viewCount;
+          }
         } catch (error) {
           console.log("记录浏览历史失败，可能用户未登录:", error);
+          await api_dish.increaseViewCount(this.dishId);
+          if (this.dish) {
+            this.dish.viewCount = (this.dish.viewCount || 0) + 1;
+          }
           this.recordLocalViewHistory();
         }
       } catch (error) {

@@ -123,24 +123,121 @@
 			async onGetUserProfile() {
 				// #ifdef MP-WEIXIN
 				try {
-					// 先登录获取code
+					// 必须在用户点击事件中同步调用 getUserProfile
+					const userProfileRes = await uni.getUserProfile({
+						desc: '用于完善用户资料'
+					})
+					
+					if (!userProfileRes.userInfo) {
+						throw new Error('获取用户信息失败')
+					}
+					
+					// 然后获取登录凭证
 					const loginRes = await uni.login()
-					if (loginRes.code) {
-						// 调用后端登录接口
-						const res = await wxLogin(loginRes.code)
-						if (res.data && res.data.token) {
-							uni.setStorageSync('token', res.data.token)
-							uni.setStorageSync('userInfo', res.data.userInfo)
-							this.hasUserInfo = true
-							this.userInfo = res.data.userInfo
-							uni.showToast({
-								title: '登录成功',
-								icon: 'success'
-							})
+					if (!loginRes.code) {
+						throw new Error('获取微信登录凭证失败')
+					}
+					
+					// 调用后端登录接口
+					const loginData = {
+						code: loginRes.code,
+						userInfo: {
+							nickName: userProfileRes.userInfo.nickName,
+							avatarUrl: userProfileRes.userInfo.avatarUrl,
+							gender: userProfileRes.userInfo.gender,
+							country: userProfileRes.userInfo.country,
+							province: userProfileRes.userInfo.province,
+							city: userProfileRes.userInfo.city
 						}
+					}
+					
+					const res = await wxLogin(loginRes.code, loginData.userInfo)
+					if (res.data && res.data.token) {
+						uni.setStorageSync('token', res.data.token)
+						uni.setStorageSync('userInfo', res.data.userInfo)
+						this.hasUserInfo = true
+						this.userInfo = res.data.userInfo
+						this.loadUserStats()
+						uni.showToast({
+							title: '登录成功',
+							icon: 'success'
+						})
+					} else {
+						throw new Error('登录接口返回数据异常')
 					}
 				} catch (error) {
 					console.error('登录失败:', error)
+					
+					// 如果是用户取消授权，提供友好提示
+					if (error.errMsg && error.errMsg.includes('getUserProfile:fail cancel')) {
+						uni.showToast({
+							title: '需要授权才能使用完整功能',
+							icon: 'none',
+							duration: 2000
+						})
+						return
+					}
+					
+					// 如果获取用户信息失败，尝试简化登录（只用code）
+					if (error.errMsg && error.errMsg.includes('getUserProfile:fail')) {
+						try {
+							console.log('尝试简化登录...')
+							const loginRes = await uni.login()
+							if (loginRes.code) {
+								const res = await wxLogin(loginRes.code)
+								if (res.data && res.data.token) {
+									uni.setStorageSync('token', res.data.token)
+									uni.setStorageSync('userInfo', res.data.userInfo)
+									this.hasUserInfo = true
+									this.userInfo = res.data.userInfo
+									this.loadUserStats()
+									uni.showToast({
+										title: '登录成功',
+										icon: 'success'
+									})
+									return
+								}
+							}
+						} catch (fallbackError) {
+							console.error('简化登录也失败:', fallbackError)
+						}
+					}
+					
+					uni.showToast({
+						title: error.message || '登录失败',
+						icon: 'none'
+					})
+				}
+				// #endif
+				
+				// #ifdef H5
+				// H5环境下的模拟登录
+				try {
+					const mockUserInfo = {
+						id: 1,
+						nickname: 'H5用户',
+						avatar: 'https://via.placeholder.com/100x100?text=H5',
+						fansCount: 0,
+						followCount: 0
+					}
+					
+					const mockToken = 'mock_token_' + Date.now()
+					
+					uni.setStorageSync('token', mockToken)
+					uni.setStorageSync('userInfo', mockUserInfo)
+					this.hasUserInfo = true
+					this.userInfo = mockUserInfo
+					this.userStats = {
+						followCount: mockUserInfo.followCount,
+						fansCount: mockUserInfo.fansCount
+					}
+					
+					uni.showToast({
+						title: '模拟登录成功',
+						icon: 'success'
+					})
+				} catch (error) {
+					console.error('模拟登录失败:', error)
 					uni.showToast({
 						title: '登录失败',
 						icon: 'none'

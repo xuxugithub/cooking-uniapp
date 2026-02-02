@@ -1,8 +1,12 @@
 import { get, post } from '../utils/request.js'
 
 // 微信小程序登录
-export const wxLogin = (code) => {
-  return post('/api/app/user/wx-login', { code })
+export const wxLogin = (code, userInfo = null) => {
+  const data = { code }
+  if (userInfo) {
+    data.userInfo = userInfo
+  }
+  return post('/api/app/user/wx-login', data)
 }
 
 // 获取用户信息

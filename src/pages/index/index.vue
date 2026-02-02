@@ -37,23 +37,28 @@
 
 		<!-- 分类导航 -->
 		<view class="category-section" v-if="categories.length > 0">
-			<view class="category-grid">
+			<view class="category-header">
+				<text class="category-title">菜品分类</text>
+			</view>
+			<view class="category-list">
 				<view 
 					class="category-item" 
-					v-for="(item, index) in categories" 
+					v-for="item in categories" 
 					:key="item.id" 
 					@tap="onCategoryTap" 
 					:data-category="item"
-					v-if="index < 6"
 				>
-					<view class="category-icon-wrapper">
-						<image class="category-icon" :src="getImageUrl(item.image)" mode="aspectFill"></image>
+					<view class="category-icon-wrapper" v-if="item.icon">
+						<image class="category-icon" :src="getImageUrl(item.icon)" mode="aspectFill"></image>
+					</view>
+					<view class="category-icon-placeholder" v-else>
+						<text class="category-icon-text">{{item.name.charAt(0)}}</text>
 					</view>
 					<text class="category-name">{{item.name}}</text>
 				</view>
-				<view class="category-item" @tap="goToCategory">
-					<view class="category-icon-wrapper more-icon">
-						<text class="more-text">更多</text>
+				<view class="category-item more-btn" @tap="goToCategory">
+					<view class="category-icon-wrapper more-icon-wrapper">
+						<text class="more-icon">⋯</text>
 					</view>
 					<text class="category-name">更多</text>
 				</view>
@@ -122,6 +127,7 @@
 			<text class="empty-icon">🍽️</text>
 			<text class="empty-text">暂无数据</text>
 		</view>
+		
 	</view>
 </template>
 
@@ -194,7 +200,7 @@
 					console.log('分类数据:', categoryRes)
 
 					this.banners = bannerRes.data || []
-					this.categories = (categoryRes.data || []).slice(0, 8) // 只显示前8个分类
+					this.categories = categoryRes.data || [] // 显示所有分类
 					this.loading = false
 					this.pagination = { ...this.pagination, current: 1 }
 					this.allDishes = []
@@ -211,6 +217,10 @@
 				} catch (error) {
 					console.error('加载数据失败:', error)
 					this.loading = false
+					// 确保数据有默认值，避免页面空白
+					if (!this.banners || this.banners.length === 0) this.banners = []
+					if (!this.categories || this.categories.length === 0) this.categories = []
+					if (!this.allDishes || this.allDishes.length === 0) this.allDishes = []
 					uni.showToast({
 						title: '加载失败，请重试',
 						icon: 'none'
@@ -317,8 +327,19 @@
 			// 分类点击事件
 			onCategoryTap(e) {
 				const { category } = e.currentTarget.dataset
-				uni.navigateTo({
-					url: `/pages/category/category?categoryId=${category.id}&categoryName=${category.name}`
+				if (!category || !category.id) {
+					console.error('分类数据无效:', category)
+					return
+				}
+				// 由于分类页面是 tabBar 页面，需要使用 switchTab，但 switchTab 不支持参数
+				// 所以先存储分类信息，然后跳转
+				uni.setStorageSync('selectedCategory', {
+					id: category.id,
+					name: category.name
+				})
+				// 跳转到分类页面
+				uni.switchTab({
+					url: '/pages/category/category'
 				})
 			},
 

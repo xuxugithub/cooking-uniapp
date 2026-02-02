@@ -10,7 +10,7 @@
 					@tap="onCategoryTap" 
 					:data-category="item"
 				>
-					<image class="category-image" :src="getImageUrl(item.image)" mode="aspectFill"></image>
+					<image class="category-image" :src="getImageUrl(item.icon)" mode="aspectFill"></image>
 					<view class="category-info">
 						<text class="category-name">{{item.name}}</text>
 						<text class="category-desc" v-if="item.description">{{item.description}}</text>
@@ -110,6 +110,25 @@
 				this.type = 'hot'
 				this.loadDishes()
 			} else {
+				this.loadCategories()
+			}
+		},
+		onShow() {
+			// 检查是否有从首页传递过来的分类信息
+			const selectedCategory = uni.getStorageSync('selectedCategory')
+			if (selectedCategory && selectedCategory.id) {
+				// 清除存储的分类信息
+				uni.removeStorageSync('selectedCategory')
+				// 设置当前分类并加载菜品
+				this.currentCategoryId = selectedCategory.id
+				this.currentCategoryName = selectedCategory.name || ''
+				this.type = 'dish'
+				this.pagination = { ...this.pagination, current: 1 }
+				this.dishes = []
+				this.hasMore = true
+				this.loadDishes()
+			} else if (!this.currentCategoryId && this.type === 'category') {
+				// 如果没有选中分类且当前是分类列表模式，重新加载分类列表
 				this.loadCategories()
 			}
 		},

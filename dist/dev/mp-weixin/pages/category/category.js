@@ -35,6 +35,21 @@ const _sfc_main = {
       this.loadCategories();
     }
   },
+  onShow() {
+    const selectedCategory = common_vendor.index.getStorageSync("selectedCategory");
+    if (selectedCategory && selectedCategory.id) {
+      common_vendor.index.removeStorageSync("selectedCategory");
+      this.currentCategoryId = selectedCategory.id;
+      this.currentCategoryName = selectedCategory.name || "";
+      this.type = "dish";
+      this.pagination = { ...this.pagination, current: 1 };
+      this.dishes = [];
+      this.hasMore = true;
+      this.loadDishes();
+    } else if (!this.currentCategoryId && this.type === "category") {
+      this.loadCategories();
+    }
+  },
   onReachBottom() {
     if (this.hasMore && !this.loadingMore && (this.currentCategoryId || this.type === "hot")) {
       this.loadMoreDishes();
@@ -154,7 +169,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   }, !$data.currentCategoryId && $data.type === "category" && !$data.loading ? {
     b: common_vendor.f($data.categories, (item, k0, i0) => {
       return common_vendor.e({
-        a: $options.getImageUrl(item.image),
+        a: $options.getImageUrl(item.icon),
         b: common_vendor.t(item.name),
         c: item.description
       }, item.description ? {
@@ -170,7 +185,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   }, ($data.currentCategoryId || $data.type === "hot") && !$data.loading ? common_vendor.e({
     d: $data.currentCategoryId
   }, $data.currentCategoryId ? {
-    e: common_vendor.o((...args) => $options.onBackToCategories && $options.onBackToCategories(...args), "22"),
+    e: common_vendor.o((...args) => $options.onBackToCategories && $options.onBackToCategories(...args), "fc"),
     f: common_vendor.t($data.currentCategoryName)
   } : {}, {
     g: $data.dishes.length > 0
