@@ -9,7 +9,12 @@ const _sfc_main = {
       userStats: {
         followCount: 0,
         fansCount: 0
-      }
+      },
+      // 弹窗相关
+      showUserListModal: false,
+      modalTitle: "",
+      userList: [],
+      currentUserId: null
     };
   },
   onLoad() {
@@ -25,6 +30,7 @@ const _sfc_main = {
       if (userInfo) {
         this.hasUserInfo = true;
         this.userInfo = userInfo;
+        this.currentUserId = userInfo.id;
         this.loadUserStats();
       }
     },
@@ -125,22 +131,6 @@ const _sfc_main = {
         url: "/pages/favorites/favorites"
       });
     },
-    // 测试Token
-    testToken() {
-      const token = common_vendor.index.getStorageSync("token");
-      if (token) {
-        common_vendor.index.showModal({
-          title: "Token信息",
-          content: `Token: ${token.substring(0, 20)}...`,
-          showCancel: false
-        });
-      } else {
-        common_vendor.index.showToast({
-          title: "未登录",
-          icon: "none"
-        });
-      }
-    },
     // 清除缓存
     onClearCache() {
       common_vendor.index.showModal({
@@ -173,6 +163,96 @@ const _sfc_main = {
         content: "厨小教 v1.0.0\n零基础学做菜超简单",
         showCancel: false
       });
+    },
+    // 显示关注列表
+    async onShowFollowList() {
+      if (!this.hasUserInfo) {
+        common_vendor.index.showToast({
+          title: "请先登录",
+          icon: "none"
+        });
+        return;
+      }
+      try {
+        this.modalTitle = "关注列表";
+        this.showUserListModal = true;
+        this.userList = [];
+        const res = await api_user.getFollowList(this.userInfo.id);
+        if (res.data) {
+          this.userList = res.data;
+        }
+      } catch (error) {
+        console.error("获取关注列表失败:", error);
+        common_vendor.index.showToast({
+          title: "获取关注列表失败",
+          icon: "none"
+        });
+      }
+    },
+    // 显示粉丝列表
+    async onShowFansList() {
+      if (!this.hasUserInfo) {
+        common_vendor.index.showToast({
+          title: "请先登录",
+          icon: "none"
+        });
+        return;
+      }
+      try {
+        this.modalTitle = "粉丝列表";
+        this.showUserListModal = true;
+        this.userList = [];
+        const res = await api_user.getFansList(this.userInfo.id);
+        if (res.data) {
+          this.userList = res.data;
+        }
+      } catch (error) {
+        console.error("获取粉丝列表失败:", error);
+        common_vendor.index.showToast({
+          title: "获取粉丝列表失败",
+          icon: "none"
+        });
+      }
+    },
+    // 关闭用户列表弹窗
+    closeUserListModal() {
+      this.showUserListModal = false;
+      this.userList = [];
+      this.modalTitle = "";
+    },
+    // 切换关注状态
+    async toggleFollow(user) {
+      if (!this.hasUserInfo) {
+        common_vendor.index.showToast({
+          title: "请先登录",
+          icon: "none"
+        });
+        return;
+      }
+      try {
+        if (user.isFollowed) {
+          await api_user.unfollowUser(user.userId);
+          user.isFollowed = false;
+          common_vendor.index.showToast({
+            title: "已取消关注",
+            icon: "success"
+          });
+        } else {
+          await api_user.followUser(user.userId);
+          user.isFollowed = true;
+          common_vendor.index.showToast({
+            title: "关注成功",
+            icon: "success"
+          });
+        }
+        this.loadUserStats();
+      } catch (error) {
+        console.error("操作失败:", error);
+        common_vendor.index.showToast({
+          title: "操作失败",
+          icon: "none"
+        });
+      }
     }
   }
 };
@@ -183,16 +263,42 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     b: $data.userInfo.avatarUrl,
     c: common_vendor.t($data.userInfo.nickName),
     d: common_vendor.t($data.userStats.followCount),
-    e: common_vendor.t($data.userStats.fansCount)
+    e: common_vendor.o((...args) => $options.onShowFollowList && $options.onShowFollowList(...args), "cb"),
+    f: common_vendor.t($data.userStats.fansCount),
+    g: common_vendor.o((...args) => $options.onShowFansList && $options.onShowFansList(...args), "61")
   } : {
-    f: common_vendor.o((...args) => $options.onGetUserProfile && $options.onGetUserProfile(...args), "fe")
+    h: common_vendor.o((...args) => $options.onGetUserProfile && $options.onGetUserProfile(...args), "63")
   }, {
-    g: common_vendor.o((...args) => $options.onViewFavorites && $options.onViewFavorites(...args), "77"),
-    h: common_vendor.o((...args) => $options.testToken && $options.testToken(...args), "0b"),
-    i: common_vendor.o((...args) => $options.onClearCache && $options.onClearCache(...args), "e4"),
-    j: common_vendor.o((...args) => $options.onFeedback && $options.onFeedback(...args), "87"),
-    k: common_vendor.o((...args) => $options.onAbout && $options.onAbout(...args), "b7")
-  });
+    i: common_vendor.o((...args) => $options.onViewFavorites && $options.onViewFavorites(...args), "48"),
+    j: common_vendor.o((...args) => $options.onClearCache && $options.onClearCache(...args), "17"),
+    k: common_vendor.o((...args) => $options.onFeedback && $options.onFeedback(...args), "46"),
+    l: common_vendor.o((...args) => $options.onAbout && $options.onAbout(...args), "3f"),
+    m: $data.showUserListModal
+  }, $data.showUserListModal ? common_vendor.e({
+    n: common_vendor.t($data.modalTitle),
+    o: common_vendor.o((...args) => $options.closeUserListModal && $options.closeUserListModal(...args), "5b"),
+    p: $data.userList.length > 0
+  }, $data.userList.length > 0 ? {
+    q: common_vendor.f($data.userList, (user, k0, i0) => {
+      return common_vendor.e({
+        a: user.avatar || "/static/default-avatar.png",
+        b: common_vendor.t(user.nickname),
+        c: user.userId !== $data.currentUserId
+      }, user.userId !== $data.currentUserId ? {
+        d: common_vendor.t(user.isFollowed ? "已关注" : "关注"),
+        e: user.isFollowed ? 1 : "",
+        f: common_vendor.o(($event) => $options.toggleFollow(user), user.userId)
+      } : {}, {
+        g: user.userId
+      });
+    })
+  } : {
+    r: common_vendor.t($data.modalTitle === "关注列表" ? "暂无关注" : "暂无粉丝")
+  }, {
+    s: common_vendor.o(() => {
+    }, "1a"),
+    t: common_vendor.o((...args) => $options.closeUserListModal && $options.closeUserListModal(...args), "87")
+  }) : {});
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-04d37cba"]]);
 wx.createPage(MiniProgramPage);

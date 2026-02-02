@@ -23,3 +23,23 @@ export const updateUserInfo = (userInfo) => {
 export const getUserFavorites = (params = {}) => {
   return get('/api/app/favorite/list', params)
 }
+
+// 获取关注列表
+export const getFollowList = (userId) => {
+  return get('/api/app/follow/list', { userId })
+}
+
+// 获取粉丝列表
+export const getFansList = (userId) => {
+  return get('/api/app/follow/fans', { userId })
+}
+
+// 关注用户
+export const followUser = (followUserId) => {
+  return post('/api/app/follow/add', { followUserId })
+}
+
+// 取消关注
+export const unfollowUser = (followUserId) => {
+  return post('/api/app/follow/remove', { followUserId })
+}

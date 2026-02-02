@@ -202,3 +202,114 @@
   font-size: 28rpx;
   font-weight: 600;
 }
+/* 用户列表弹窗样式 */
+.user-list-modal.data-v-04d37cba {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+.modal-content.data-v-04d37cba {
+  background: #fff;
+  border-radius: 20rpx;
+  width: 90%;
+  max-width: 600rpx;
+  max-height: 80vh;
+  overflow: hidden;
+  box-shadow: 0 10rpx 40rpx rgba(0, 0, 0, 0.2);
+}
+.modal-header.data-v-04d37cba {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 30rpx 40rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+  background: #fafafa;
+}
+.modal-title.data-v-04d37cba {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+.close-btn.data-v-04d37cba {
+  font-size: 50rpx;
+  color: #999;
+  line-height: 1;
+  padding: 10rpx;
+  margin: -10rpx;
+}
+.user-list.data-v-04d37cba {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.user-item.data-v-04d37cba {
+  display: flex;
+  align-items: center;
+  padding: 25rpx 40rpx;
+  border-bottom: 1rpx solid #f8f8f8;
+  transition: background-color 0.3s ease;
+}
+.user-item.data-v-04d37cba:last-child {
+  border-bottom: none;
+}
+.user-item.data-v-04d37cba:active {
+  background: #f8f8f8;
+}
+.user-avatar.data-v-04d37cba {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  margin-right: 25rpx;
+  border: 2rpx solid #f0f0f0;
+}
+.user-info.data-v-04d37cba {
+  flex: 1;
+}
+.user-nickname.data-v-04d37cba {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+}
+.follow-btn.data-v-04d37cba {
+  padding: 12rpx 25rpx;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  border: 2rpx solid #ff6b35;
+  color: #ff6b35;
+  background: #fff;
+  transition: all 0.3s ease;
+}
+.follow-btn.followed.data-v-04d37cba {
+  background: #ff6b35;
+  color: #fff;
+}
+.follow-btn.data-v-04d37cba:active {
+  transform: scale(0.95);
+}
+.empty-list.data-v-04d37cba {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80rpx 40rpx;
+}
+.empty-text.data-v-04d37cba {
+  font-size: 28rpx;
+  color: #999;
+}
+/* 让关注和粉丝数可点击 */
+.user-follow-stats .stat-item.data-v-04d37cba {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 10rpx;
+  padding: 10rpx 20rpx;
+}
+.user-follow-stats .stat-item.data-v-04d37cba:active {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(0.95);
+}

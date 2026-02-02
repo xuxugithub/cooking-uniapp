@@ -9,12 +9,12 @@
 					<text class="welcome">欢迎使用厨小教</text>
 					<!-- 粉丝和关注数 -->
 					<view class="user-follow-stats">
-						<view class="stat-item">
+						<view class="stat-item" @tap="onShowFollowList">
 							<text class="stat-number">{{userStats.followCount}}</text>
 							<text class="stat-label">关注</text>
 						</view>
 						<view class="stat-divider"></view>
-						<view class="stat-item">
+						<view class="stat-item" @tap="onShowFansList">
 							<text class="stat-number">{{userStats.fansCount}}</text>
 							<text class="stat-label">粉丝</text>
 						</view>
@@ -38,11 +38,6 @@
 				<view class="menu-item" @tap="onViewFavorites">
 					<view class="menu-icon">❤️</view>
 					<text class="menu-text">我的收藏</text>
-					<text class="menu-arrow">></text>
-				</view>
-				<view class="menu-item" @tap="testToken">
-					<view class="menu-icon">🔑</view>
-					<text class="menu-text">测试Token</text>
 					<text class="menu-arrow">></text>
 				</view>
 				<view class="menu-item" @tap="onClearCache">
@@ -70,11 +65,37 @@
 				</view>
 			</view>
 		</view>
+		
+		<!-- 关注/粉丝列表弹窗 -->
+		<view class="user-list-modal" v-if="showUserListModal" @tap="closeUserListModal">
+			<view class="modal-content" @tap.stop>
+				<view class="modal-header">
+					<text class="modal-title">{{modalTitle}}</text>
+					<text class="close-btn" @tap="closeUserListModal">×</text>
+				</view>
+				<view class="user-list" v-if="userList.length > 0">
+					<view class="user-item" v-for="user in userList" :key="user.userId">
+						<image class="user-avatar" :src="user.avatar || '/static/default-avatar.png'" mode="aspectFill"></image>
+						<view class="user-info">
+							<text class="user-nickname">{{user.nickname}}</text>
+						</view>
+						<view class="follow-btn" v-if="user.userId !== currentUserId" 
+							  :class="{ 'followed': user.isFollowed }" 
+							  @tap="toggleFollow(user)">
+							<text>{{user.isFollowed ? '已关注' : '关注'}}</text>
+						</view>
+					</view>
+				</view>
+				<view class="empty-list" v-else>
+					<text class="empty-text">{{modalTitle === '关注列表' ? '暂无关注' : '暂无粉丝'}}</text>
+				</view>
+			</view>
+		</view>
 	</view>
 </template>
 
 <script>
-	import { wxLogin, getUserInfo } from '../../api/user.js'
+	import { wxLogin, getUserInfo, getFollowList, getFansList, followUser, unfollowUser } from '../../api/user.js'
 
 	export default {
 		data() {
@@ -84,7 +105,12 @@
 				userStats: {
 					followCount: 0,
 					fansCount: 0
-				}
+				},
+				// 弹窗相关
+				showUserListModal: false,
+				modalTitle: '',
+				userList: [],
+				currentUserId: null
 			}
 		},
 		onLoad() {
@@ -100,6 +126,7 @@
 				if (userInfo) {
 					this.hasUserInfo = true
 					this.userInfo = userInfo
+					this.currentUserId = userInfo.id
 					this.loadUserStats()
 				}
 			},
@@ -253,23 +280,6 @@
 				})
 			},
 
-			// 测试Token
-			testToken() {
-				const token = uni.getStorageSync('token')
-				if (token) {
-					uni.showModal({
-						title: 'Token信息',
-						content: `Token: ${token.substring(0, 20)}...`,
-						showCancel: false
-					})
-				} else {
-					uni.showToast({
-						title: '未登录',
-						icon: 'none'
-					})
-				}
-			},
-
 			// 清除缓存
 			onClearCache() {
 				uni.showModal({
@@ -304,6 +314,109 @@
 					content: '厨小教 v1.0.0\n零基础学做菜超简单',
 					showCancel: false
 				})
+			},
+
+			// 显示关注列表
+			async onShowFollowList() {
+				if (!this.hasUserInfo) {
+					uni.showToast({
+						title: '请先登录',
+						icon: 'none'
+					})
+					return
+				}
+				
+				try {
+					this.modalTitle = '关注列表'
+					this.showUserListModal = true
+					this.userList = []
+					
+					const res = await getFollowList(this.userInfo.id)
+					if (res.data) {
+						this.userList = res.data
+					}
+				} catch (error) {
+					console.error('获取关注列表失败:', error)
+					uni.showToast({
+						title: '获取关注列表失败',
+						icon: 'none'
+					})
+				}
+			},
+
+			// 显示粉丝列表
+			async onShowFansList() {
+				if (!this.hasUserInfo) {
+					uni.showToast({
+						title: '请先登录',
+						icon: 'none'
+					})
+					return
+				}
+				
+				try {
+					this.modalTitle = '粉丝列表'
+					this.showUserListModal = true
+					this.userList = []
+					
+					const res = await getFansList(this.userInfo.id)
+					if (res.data) {
+						this.userList = res.data
+					}
+				} catch (error) {
+					console.error('获取粉丝列表失败:', error)
+					uni.showToast({
+						title: '获取粉丝列表失败',
+						icon: 'none'
+					})
+				}
+			},
+
+			// 关闭用户列表弹窗
+			closeUserListModal() {
+				this.showUserListModal = false
+				this.userList = []
+				this.modalTitle = ''
+			},
+
+			// 切换关注状态
+			async toggleFollow(user) {
+				if (!this.hasUserInfo) {
+					uni.showToast({
+						title: '请先登录',
+						icon: 'none'
+					})
+					return
+				}
+				
+				try {
+					if (user.isFollowed) {
+						// 取消关注
+						await unfollowUser(user.userId)
+						user.isFollowed = false
+						uni.showToast({
+							title: '已取消关注',
+							icon: 'success'
+						})
+					} else {
+						// 关注
+						await followUser(user.userId)
+						user.isFollowed = true
+						uni.showToast({
+							title: '关注成功',
+							icon: 'success'
+						})
+					}
+					
+					// 更新本地统计数据
+					this.loadUserStats()
+				} catch (error) {
+					console.error('操作失败:', error)
+					uni.showToast({
+						title: '操作失败',
+						icon: 'none'
+					})
+				}
 			}
 		}
 	}
