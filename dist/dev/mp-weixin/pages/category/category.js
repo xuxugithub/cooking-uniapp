@@ -170,7 +170,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   }, ($data.currentCategoryId || $data.type === "hot") && !$data.loading ? common_vendor.e({
     d: $data.currentCategoryId
   }, $data.currentCategoryId ? {
-    e: common_vendor.o((...args) => $options.onBackToCategories && $options.onBackToCategories(...args), "e2"),
+    e: common_vendor.o((...args) => $options.onBackToCategories && $options.onBackToCategories(...args), "22"),
     f: common_vendor.t($data.currentCategoryName)
   } : {}, {
     g: $data.dishes.length > 0

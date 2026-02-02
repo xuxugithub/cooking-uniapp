@@ -293,7 +293,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   }, $data.dish ? {
     r: common_vendor.n($data.isFavorite ? "favorited" : ""),
     s: common_vendor.t($data.isFavorite ? "已收藏" : "收藏"),
-    t: common_vendor.o((...args) => $options.onToggleFavorite && $options.onToggleFavorite(...args), "e0")
+    t: common_vendor.o((...args) => $options.onToggleFavorite && $options.onToggleFavorite(...args), "2c")
   } : {}, {
     v: $data.loading
   }, $data.loading ? {} : {});

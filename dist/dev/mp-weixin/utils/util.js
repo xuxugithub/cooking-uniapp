@@ -5,7 +5,7 @@ const getImageUrl = (imagePath) => {
     return "";
   if (imagePath.startsWith("http"))
     return imagePath;
-  return `https://cook.xuaq.top/admin/file/preview/${imagePath}`;
+  return `https://cook.xuaq.top/api/admin/file/preview/${imagePath}`;
 };
 const debounce = (func, wait) => {
   let timeout;

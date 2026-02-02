@@ -133,13 +133,13 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     d: common_vendor.t($data.userStats.followCount),
     e: common_vendor.t($data.userStats.fansCount)
   } : {
-    f: common_vendor.o((...args) => $options.onGetUserProfile && $options.onGetUserProfile(...args), "37")
+    f: common_vendor.o((...args) => $options.onGetUserProfile && $options.onGetUserProfile(...args), "fe")
   }, {
-    g: common_vendor.o((...args) => $options.onViewFavorites && $options.onViewFavorites(...args), "94"),
-    h: common_vendor.o((...args) => $options.testToken && $options.testToken(...args), "ec"),
-    i: common_vendor.o((...args) => $options.onClearCache && $options.onClearCache(...args), "4d"),
-    j: common_vendor.o((...args) => $options.onFeedback && $options.onFeedback(...args), "b4"),
-    k: common_vendor.o((...args) => $options.onAbout && $options.onAbout(...args), "66")
+    g: common_vendor.o((...args) => $options.onViewFavorites && $options.onViewFavorites(...args), "77"),
+    h: common_vendor.o((...args) => $options.testToken && $options.testToken(...args), "0b"),
+    i: common_vendor.o((...args) => $options.onClearCache && $options.onClearCache(...args), "e4"),
+    j: common_vendor.o((...args) => $options.onFeedback && $options.onFeedback(...args), "87"),
+    k: common_vendor.o((...args) => $options.onAbout && $options.onAbout(...args), "b7")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-04d37cba"]]);

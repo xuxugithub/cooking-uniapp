@@ -8,7 +8,7 @@
 export const getImageUrl = (imagePath) => {
   if (!imagePath) return ''
   if (imagePath.startsWith('http')) return imagePath
-  return `https://cook.xuaq.top/admin/file/preview/${imagePath}`
+  return `https://cook.xuaq.top/api/admin/file/preview/${imagePath}`
 }
 
 /**

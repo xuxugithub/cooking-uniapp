@@ -211,11 +211,11 @@ const _sfc_main = {
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
     a: common_vendor.o([($event) => $data.searchValue = $event.detail.value, (...args) => $options.onSearchInput && $options.onSearchInput(...args)], "08"),
-    b: common_vendor.o((...args) => $options.onSearchConfirm && $options.onSearchConfirm(...args), "d5"),
+    b: common_vendor.o((...args) => $options.onSearchConfirm && $options.onSearchConfirm(...args), "c9"),
     c: $data.searchValue,
     d: $data.searchValue
   }, $data.searchValue ? {
-    e: common_vendor.o((...args) => $options.onSearchConfirm && $options.onSearchConfirm(...args), "f4")
+    e: common_vendor.o((...args) => $options.onSearchConfirm && $options.onSearchConfirm(...args), "c6")
   } : {}, {
     f: $data.banners.length > 0
   }, $data.banners.length > 0 ? {
@@ -246,7 +246,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       };
     })
   } : {}, {
-    k: common_vendor.o((...args) => $options.goToCategory && $options.goToCategory(...args), "97")
+    k: common_vendor.o((...args) => $options.goToCategory && $options.goToCategory(...args), "90")
   }) : {}, {
     l: $data.allDishes.length > 0
   }, $data.allDishes.length > 0 ? common_vendor.e({

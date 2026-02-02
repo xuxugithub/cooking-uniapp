@@ -1,5 +1,5 @@
 // 请求工具类
-const BASE_URL = 'https://cook.xuaq.top/api'
+const BASE_URL = 'https://cook.xuaq.top'
 
 // 请求拦截器
 const request = (options) => {
