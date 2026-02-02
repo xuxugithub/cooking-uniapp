@@ -6,7 +6,8 @@ export const wxLogin = (code, userInfo = null) => {
   if (userInfo) {
     data.userInfo = userInfo
   }
-  return post('/api/app/user/wx-login', data)
+  // 禁用自动loading，由调用方手动控制
+  return post('/api/app/user/wx-login', data, { loading: false })
 }
 
 // 获取用户信息

@@ -3,12 +3,28 @@ const common_vendor = require("../common/vendor.js");
 const BASE_URL = "https://cook.xuaq.top";
 const request = (options) => {
   return new Promise((resolve, reject) => {
+    let loadingShown = false;
     if (options.loading !== false) {
-      common_vendor.index.showLoading({
-        title: "加载中...",
-        mask: true
-      });
+      try {
+        common_vendor.index.showLoading({
+          title: "加载中...",
+          mask: true
+        });
+        loadingShown = true;
+      } catch (e) {
+        console.warn("showLoading failed:", e);
+      }
     }
+    const safeHideLoading = () => {
+      if (loadingShown) {
+        try {
+          common_vendor.index.hideLoading();
+          loadingShown = false;
+        } catch (e) {
+          console.warn("hideLoading failed:", e);
+        }
+      }
+    };
     const token = common_vendor.index.getStorageSync("token");
     common_vendor.index.request({
       url: BASE_URL + options.url,
@@ -20,9 +36,7 @@ const request = (options) => {
         ...options.header
       },
       success: (res) => {
-        if (options.loading !== false) {
-          common_vendor.index.hideLoading();
-        }
+        safeHideLoading();
         if (res.statusCode === 200) {
           if (res.data.code === 200) {
             resolve(res.data);
@@ -50,10 +64,7 @@ const request = (options) => {
         }
       },
       fail: (err) => {
-        if (options.loading !== false) {
-          common_vendor.index.hideLoading();
-        }
-        console.error("请求失败:", err);
+        safeHideLoading();
         common_vendor.index.showToast({
           title: "网络请求失败",
           icon: "none"

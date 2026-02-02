@@ -55,13 +55,10 @@ const _sfc_main = {
     async loadData() {
       try {
         this.loading = true;
-        console.log("开始加载数据...");
         const [bannerRes, categoryRes] = await Promise.all([
           api_banner.getBannerList(),
           api_category.getCategoryList()
         ]);
-        console.log("Banner数据:", bannerRes);
-        console.log("分类数据:", categoryRes);
         this.banners = bannerRes.data || [];
         this.categories = categoryRes.data || [];
         this.loading = false;
@@ -69,13 +66,7 @@ const _sfc_main = {
         this.allDishes = [];
         this.hasMore = true;
         await this.loadAllDishes();
-        console.log("数据设置完成:", {
-          banners: this.banners.length,
-          categories: this.categories.length,
-          allDishes: this.allDishes.length
-        });
       } catch (error) {
-        console.error("加载数据失败:", error);
         this.loading = false;
         if (!this.banners || this.banners.length === 0)
           this.banners = [];
@@ -107,7 +98,6 @@ const _sfc_main = {
         };
         this.hasMore = newDishes.length === this.pagination.size;
       } catch (error) {
-        console.error("加载菜品列表失败:", error);
         common_vendor.index.showToast({
           title: "加载菜品失败",
           icon: "none"
@@ -126,7 +116,6 @@ const _sfc_main = {
         };
         await this.loadAllDishes();
       } catch (error) {
-        console.error("加载更多失败:", error);
         common_vendor.index.showToast({
           title: "加载失败",
           icon: "none"
@@ -152,7 +141,6 @@ const _sfc_main = {
           total: ((_b = res.data) == null ? void 0 : _b.total) || 0
         };
       } catch (error) {
-        console.error("刷新菜品数据失败:", error);
       }
     },
     // 切换排序方式
@@ -179,7 +167,6 @@ const _sfc_main = {
     onCategoryTap(e) {
       const { category } = e.currentTarget.dataset;
       if (!category || !category.id) {
-        console.error("分类数据无效:", category);
         return;
       }
       common_vendor.index.setStorageSync("selectedCategory", {

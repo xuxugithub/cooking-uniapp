@@ -64,7 +64,6 @@ const _sfc_main = {
         this.categories = res.data || [];
         this.loading = false;
       } catch (error) {
-        console.error("加载分类失败:", error);
         this.loading = false;
         common_vendor.index.showToast({
           title: "加载失败，请重试",
@@ -94,7 +93,6 @@ const _sfc_main = {
         this.hasMore = newDishes.length === this.pagination.size;
         this.loading = false;
       } catch (error) {
-        console.error("加载菜品失败:", error);
         this.loading = false;
         common_vendor.index.showToast({
           title: "加载失败，请重试",
@@ -114,7 +112,6 @@ const _sfc_main = {
         };
         await this.loadDishes();
       } catch (error) {
-        console.error("加载更多失败:", error);
         common_vendor.index.showToast({
           title: "加载失败",
           icon: "none"

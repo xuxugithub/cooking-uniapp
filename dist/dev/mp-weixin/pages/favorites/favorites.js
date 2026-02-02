@@ -31,10 +31,8 @@ const _sfc_main = {
             common_vendor.index.setStorageSync("favorites", res.data);
           }
         } catch (error) {
-          console.log("获取服务器收藏列表失败，使用本地数据:", error);
         }
       } catch (error) {
-        console.error("加载收藏列表失败:", error);
         this.loading = false;
       }
     },
@@ -60,14 +58,12 @@ const _sfc_main = {
             icon: "success"
           });
         } catch (error) {
-          console.log("后端取消收藏失败，但本地已更新:", error);
           common_vendor.index.showToast({
             title: "已取消收藏",
             icon: "success"
           });
         }
       } catch (error) {
-        console.error("取消收藏失败:", error);
         common_vendor.index.showToast({
           title: "操作失败",
           icon: "none"

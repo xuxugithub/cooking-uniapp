@@ -81,10 +81,9 @@
 							uni.setStorageSync('favorites', res.data)
 						}
 					} catch (error) {
-						console.log('获取服务器收藏列表失败，使用本地数据:', error)
+						// 获取服务器收藏列表失败，使用本地数据
 					}
 				} catch (error) {
-					console.error('加载收藏列表失败:', error)
 					this.loading = false
 				}
 			},
@@ -116,14 +115,13 @@
 							icon: 'success'
 						})
 					} catch (error) {
-						console.log('后端取消收藏失败，但本地已更新:', error)
+						// 后端取消收藏失败，但本地已更新
 						uni.showToast({
 							title: '已取消收藏',
 							icon: 'success'
 						})
 					}
 				} catch (error) {
-					console.error('取消收藏失败:', error)
 					uni.showToast({
 						title: '操作失败',
 						icon: 'none'

@@ -62,7 +62,6 @@ const _sfc_main = {
           this.checkFavoriteStatus();
         }
         if (!this.dish) {
-          console.error("菜品数据为空");
           common_vendor.index.showToast({
             title: "菜品不存在",
             icon: "none"
@@ -76,7 +75,6 @@ const _sfc_main = {
         }
         this.startViewTimer();
       } catch (error) {
-        console.error("加载菜品详情失败:", error);
         this.loading = false;
         this.dish = null;
         common_vendor.index.showToast({
@@ -108,13 +106,11 @@ const _sfc_main = {
       try {
         try {
           const response = await api_dish.recordViewHistory(this.dishId);
-          console.log("浏览历史记录成功:", response);
           const dishRes = await api_dish.getDishById(this.dishId);
           if (dishRes.data) {
             this.dish.viewCount = dishRes.data.viewCount;
           }
         } catch (error) {
-          console.log("记录浏览历史失败，可能用户未登录:", error);
           await api_dish.increaseViewCount(this.dishId);
           if (this.dish) {
             this.dish.viewCount = (this.dish.viewCount || 0) + 1;
@@ -122,7 +118,6 @@ const _sfc_main = {
           this.recordLocalViewHistory();
         }
       } catch (error) {
-        console.error("记录浏览失败:", error);
       }
     },
     // 记录本地浏览历史
@@ -159,7 +154,6 @@ const _sfc_main = {
         }
         common_vendor.index.setStorageSync("viewHistory", viewHistory);
       } catch (error) {
-        console.error("记录本地浏览历史失败:", error);
       }
     },
     // 检查收藏状态
@@ -177,9 +171,7 @@ const _sfc_main = {
         try {
           const response = await api_dish.toggleFavorite(this.dishId);
           backendResult = response.data;
-          console.log("后端收藏接口调用成功:", backendResult);
         } catch (error) {
-          console.log("后端收藏接口调用失败:", error);
           common_vendor.index.showToast({
             title: error.message || "操作失败，请先登录",
             icon: "none"
@@ -217,7 +209,6 @@ const _sfc_main = {
           });
         }
       } catch (error) {
-        console.error("收藏操作失败:", error);
         common_vendor.index.showToast({
           title: "操作失败",
           icon: "none"

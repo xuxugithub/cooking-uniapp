@@ -11,21 +11,17 @@ if (!Math) {
 }
 const _sfc_main = {
   onLaunch: function() {
-    console.log("App Launch");
     this.initApp();
   },
   onShow: function() {
-    console.log("App Show");
   },
   onHide: function() {
-    console.log("App Hide");
   },
   methods: {
     initApp() {
       if (common_vendor.index.canIUse("getUpdateManager")) {
         const updateManager = common_vendor.index.getUpdateManager();
         updateManager.onCheckForUpdate(function(res) {
-          console.log("检查更新结果:", res.hasUpdate);
         });
         updateManager.onUpdateReady(function() {
           common_vendor.index.showModal({
@@ -49,7 +45,6 @@ const _sfc_main = {
       common_vendor.index.getSystemInfo({
         success: (res) => {
           this.globalData.systemInfo = res;
-          console.log("系统信息:", res);
         }
       });
     }

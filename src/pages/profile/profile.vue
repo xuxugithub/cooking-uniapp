@@ -3,7 +3,7 @@
 		<!-- 用户信息区域 -->
 		<view class="user-section">
 			<view class="user-info" v-if="hasUserInfo">
-				<image class="avatar" :src="userInfo.avatarUrl" mode="aspectFill"></image>
+				<image class="avatar" :src="userInfo.avatarUrl || '/static/default-avatar.svg'" mode="aspectFill"></image>
 				<view class="user-details">
 					<text class="nickname">{{userInfo.nickName}}</text>
 					<text class="welcome">欢迎使用厨小教</text>
@@ -75,9 +75,9 @@
 				</view>
 				<view class="user-list" v-if="userList.length > 0">
 					<view class="user-item" v-for="user in userList" :key="user.userId">
-						<image class="user-avatar" :src="user.avatar || '/static/default-avatar.png'" mode="aspectFill"></image>
+						<image class="user-avatar" :src="user.avatarUrl || '/static/default-avatar.svg'" mode="aspectFill"></image>
 						<view class="user-info">
-							<text class="user-nickname">{{user.nickname}}</text>
+							<text class="user-nickname">{{user.nickName}}</text>
 						</view>
 						<view class="follow-btn" v-if="user.userId !== currentUserId" 
 							  :class="{ 'followed': user.isFollowed }" 
@@ -118,16 +118,35 @@
 		},
 		onShow() {
 			this.checkUserInfo()
+			// 强制刷新页面状态，确保UI正确显示
+			this.$nextTick(() => {
+				this.$forceUpdate()
+			})
 		},
 		methods: {
 			// 检查用户信息
 			checkUserInfo() {
 				const userInfo = uni.getStorageSync('userInfo')
-				if (userInfo) {
+				const token = uni.getStorageSync('token')
+				
+				if (userInfo && token) {
 					this.hasUserInfo = true
 					this.userInfo = userInfo
 					this.currentUserId = userInfo.id
 					this.loadUserStats()
+				} else {
+					// 清理无效的用户信息
+					this.hasUserInfo = false
+					this.userInfo = {}
+					this.currentUserId = null
+					this.userStats = {
+						followCount: 0,
+						fansCount: 0
+					}
+					// 清理本地存储中的无效数据
+					if (!token) {
+						uni.removeStorageSync('userInfo')
+					}
 				}
 			},
 
@@ -135,6 +154,7 @@
 			async loadUserStats() {
 				try {
 					const res = await getUserInfo()
+					
 					if (res.data) {
 						this.userStats = {
 							followCount: res.data.followCount || 0,
@@ -142,7 +162,13 @@
 						}
 					}
 				} catch (error) {
-					console.log('获取用户统计信息失败:', error)
+					// 如果是未登录错误，清理用户状态
+					if (error.message && error.message.includes('未登录')) {
+						this.clearUserState()
+						// 清理本地存储
+						uni.removeStorageSync('token')
+						uni.removeStorageSync('userInfo')
+					}
 				}
 			},
 
@@ -165,7 +191,7 @@
 						throw new Error('获取微信登录凭证失败')
 					}
 					
-					// 调用后端登录接口
+					// 调用后端登录接口（禁用自动loading，手动控制）
 					const loginData = {
 						code: loginRes.code,
 						userInfo: {
@@ -178,12 +204,25 @@
 						}
 					}
 					
+					// 手动显示loading
+					uni.showLoading({
+						title: '登录中...',
+						mask: true
+					})
+					
 					const res = await wxLogin(loginRes.code, loginData.userInfo)
+					
+					// 手动隐藏loading
+					uni.hideLoading()
+					
 					if (res.data && res.data.token) {
 						uni.setStorageSync('token', res.data.token)
 						uni.setStorageSync('userInfo', res.data.userInfo)
 						this.hasUserInfo = true
 						this.userInfo = res.data.userInfo
+						this.currentUserId = res.data.userInfo.id
+						// 强制刷新页面状态
+						this.$forceUpdate()
 						this.loadUserStats()
 						uni.showToast({
 							title: '登录成功',
@@ -193,7 +232,12 @@
 						throw new Error('登录接口返回数据异常')
 					}
 				} catch (error) {
-					console.error('登录失败:', error)
+					// 确保隐藏loading
+					try {
+						uni.hideLoading()
+					} catch (e) {
+						// 忽略hideLoading错误
+					}
 					
 					// 如果是用户取消授权，提供友好提示
 					if (error.errMsg && error.errMsg.includes('getUserProfile:fail cancel')) {
@@ -208,15 +252,18 @@
 					// 如果获取用户信息失败，尝试简化登录（只用code）
 					if (error.errMsg && error.errMsg.includes('getUserProfile:fail')) {
 						try {
-							console.log('尝试简化登录...')
 							const loginRes = await uni.login()
 							if (loginRes.code) {
-								const res = await wxLogin(loginRes.code)
+								// 使用禁用loading的方式调用API
+								const res = await wxLogin(loginRes.code, null)
 								if (res.data && res.data.token) {
 									uni.setStorageSync('token', res.data.token)
 									uni.setStorageSync('userInfo', res.data.userInfo)
 									this.hasUserInfo = true
 									this.userInfo = res.data.userInfo
+									this.currentUserId = res.data.userInfo.id
+									// 强制刷新页面状态
+									this.$forceUpdate()
 									this.loadUserStats()
 									uni.showToast({
 										title: '登录成功',
@@ -226,7 +273,7 @@
 								}
 							}
 						} catch (fallbackError) {
-							console.error('简化登录也失败:', fallbackError)
+							// 简化登录失败，继续显示错误
 						}
 					}
 					
@@ -242,8 +289,8 @@
 				try {
 					const mockUserInfo = {
 						id: 1,
-						nickname: 'H5用户',
-						avatar: 'https://via.placeholder.com/100x100?text=H5',
+						nickName: 'H5用户',
+						avatarUrl: '/static/default-avatar.svg',
 						fansCount: 0,
 						followCount: 0
 					}
@@ -254,6 +301,7 @@
 					uni.setStorageSync('userInfo', mockUserInfo)
 					this.hasUserInfo = true
 					this.userInfo = mockUserInfo
+					this.currentUserId = mockUserInfo.id
 					this.userStats = {
 						followCount: mockUserInfo.followCount,
 						fansCount: mockUserInfo.fansCount
@@ -264,7 +312,6 @@
 						icon: 'success'
 					})
 				} catch (error) {
-					console.error('模拟登录失败:', error)
 					uni.showToast({
 						title: '登录失败',
 						icon: 'none'
@@ -288,8 +335,7 @@
 					success: (res) => {
 						if (res.confirm) {
 							uni.clearStorageSync()
-							this.hasUserInfo = false
-							this.userInfo = {}
+							this.clearUserState()
 							uni.showToast({
 								title: '清除成功',
 								icon: 'success'
@@ -297,6 +343,19 @@
 						}
 					}
 				})
+			},
+
+			// 清理用户状态
+			clearUserState() {
+				this.hasUserInfo = false
+				this.userInfo = {}
+				this.currentUserId = null
+				this.userStats = {
+					followCount: 0,
+					fansCount: 0
+				}
+				// 强制刷新页面状态
+				this.$forceUpdate()
 			},
 
 			// 意见反馈
@@ -336,7 +395,6 @@
 						this.userList = res.data
 					}
 				} catch (error) {
-					console.error('获取关注列表失败:', error)
 					uni.showToast({
 						title: '获取关注列表失败',
 						icon: 'none'
@@ -364,7 +422,6 @@
 						this.userList = res.data
 					}
 				} catch (error) {
-					console.error('获取粉丝列表失败:', error)
 					uni.showToast({
 						title: '获取粉丝列表失败',
 						icon: 'none'
@@ -411,7 +468,6 @@
 					// 更新本地统计数据
 					this.loadUserStats()
 				} catch (error) {
-					console.error('操作失败:', error)
 					uni.showToast({
 						title: '操作失败',
 						icon: 'none'

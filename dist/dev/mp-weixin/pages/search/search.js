@@ -80,7 +80,6 @@ const _sfc_main = {
         this.loading = false;
         this.saveSearchHistory(keyword);
       } catch (error) {
-        console.error("搜索失败:", error);
         this.loading = false;
         common_vendor.index.showToast({
           title: "搜索失败，请重试",
@@ -110,7 +109,6 @@ const _sfc_main = {
         this.hasMore = newResults.length === this.pagination.size;
         this.loadingMore = false;
       } catch (error) {
-        console.error("加载更多失败:", error);
         this.loadingMore = false;
         common_vendor.index.showToast({
           title: "加载失败",

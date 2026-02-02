@@ -201,7 +201,6 @@
 					this.saveSearchHistory(keyword)
 
 				} catch (error) {
-					console.error('搜索失败:', error)
 					this.loading = false
 					uni.showToast({
 						title: '搜索失败，请重试',
@@ -236,7 +235,6 @@
 					this.loadingMore = false
 
 				} catch (error) {
-					console.error('加载更多失败:', error)
 					this.loadingMore = false
 					uni.showToast({
 						title: '加载失败',

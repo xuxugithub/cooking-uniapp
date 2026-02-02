@@ -189,15 +189,10 @@
 				try {
 					this.loading = true
 					
-					console.log('开始加载数据...')
-					
 					const [bannerRes, categoryRes] = await Promise.all([
 						getBannerList(),
 						getCategoryList()
 					])
-
-					console.log('Banner数据:', bannerRes)
-					console.log('分类数据:', categoryRes)
 
 					this.banners = bannerRes.data || []
 					this.categories = categoryRes.data || [] // 显示所有分类
@@ -209,13 +204,7 @@
 					// 加载菜品列表
 					await this.loadAllDishes()
 					
-					console.log('数据设置完成:', {
-						banners: this.banners.length,
-						categories: this.categories.length,
-						allDishes: this.allDishes.length
-					})
 				} catch (error) {
-					console.error('加载数据失败:', error)
 					this.loading = false
 					// 确保数据有默认值，避免页面空白
 					if (!this.banners || this.banners.length === 0) this.banners = []
@@ -247,7 +236,6 @@
 					}
 					this.hasMore = newDishes.length === this.pagination.size
 				} catch (error) {
-					console.error('加载菜品列表失败:', error)
 					uni.showToast({
 						title: '加载菜品失败',
 						icon: 'none'
@@ -269,7 +257,6 @@
 					
 					await this.loadAllDishes()
 				} catch (error) {
-					console.error('加载更多失败:', error)
 					uni.showToast({
 						title: '加载失败',
 						icon: 'none'
@@ -297,7 +284,7 @@
 						total: res.data?.total || 0
 					}
 				} catch (error) {
-					console.error('刷新菜品数据失败:', error)
+					// 刷新失败，保持当前状态
 				}
 			},
 
@@ -328,7 +315,6 @@
 			onCategoryTap(e) {
 				const { category } = e.currentTarget.dataset
 				if (!category || !category.id) {
-					console.error('分类数据无效:', category)
 					return
 				}
 				// 由于分类页面是 tabBar 页面，需要使用 switchTab，但 switchTab 不支持参数

@@ -7,15 +7,14 @@
 <script>
 	export default {
 		onLaunch: function() {
-			console.log('App Launch')
 			// 初始化应用
 			this.initApp()
 		},
 		onShow: function() {
-			console.log('App Show')
+			// 应用显示
 		},
 		onHide: function() {
-			console.log('App Hide')
+			// 应用隐藏
 		},
 		methods: {
 			initApp() {
@@ -24,7 +23,7 @@
 				if (uni.canIUse('getUpdateManager')) {
 					const updateManager = uni.getUpdateManager()
 					updateManager.onCheckForUpdate(function(res) {
-						console.log('检查更新结果:', res.hasUpdate)
+						// 检查更新结果
 					})
 					updateManager.onUpdateReady(function() {
 						uni.showModal({
@@ -51,7 +50,6 @@
 				uni.getSystemInfo({
 					success: (res) => {
 						this.globalData.systemInfo = res
-						console.log('系统信息:', res)
 					}
 				})
 			}

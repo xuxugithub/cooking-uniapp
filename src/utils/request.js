@@ -4,12 +4,31 @@ const BASE_URL = 'https://cook.xuaq.top'
 // 请求拦截器
 const request = (options) => {
   return new Promise((resolve, reject) => {
+    let loadingShown = false
+    
     // 显示加载提示
     if (options.loading !== false) {
-      uni.showLoading({
-        title: '加载中...',
-        mask: true
-      })
+      try {
+        uni.showLoading({
+          title: '加载中...',
+          mask: true
+        })
+        loadingShown = true
+      } catch (e) {
+        console.warn('showLoading failed:', e)
+      }
+    }
+
+    // 隐藏loading的安全方法
+    const safeHideLoading = () => {
+      if (loadingShown) {
+        try {
+          uni.hideLoading()
+          loadingShown = false
+        } catch (e) {
+          console.warn('hideLoading failed:', e)
+        }
+      }
     }
 
     // 获取token
@@ -26,9 +45,7 @@ const request = (options) => {
       },
       success: (res) => {
         // 隐藏加载提示
-        if (options.loading !== false) {
-          uni.hideLoading()
-        }
+        safeHideLoading()
 
         if (res.statusCode === 200) {
           // 请求成功
@@ -62,11 +79,8 @@ const request = (options) => {
       },
       fail: (err) => {
         // 隐藏加载提示
-        if (options.loading !== false) {
-          uni.hideLoading()
-        }
+        safeHideLoading()
         
-        console.error('请求失败:', err)
         uni.showToast({
           title: '网络请求失败',
           icon: 'none'

@@ -164,7 +164,6 @@
 					
 					// 确保 dish 对象存在，以便底部按钮显示
 					if (!this.dish) {
-						console.error('菜品数据为空')
 						uni.showToast({
 							title: '菜品不存在',
 							icon: 'none'
@@ -183,7 +182,6 @@
 					// 页面加载完成后开始浏览计时
 					this.startViewTimer()
 				} catch (error) {
-					console.error('加载菜品详情失败:', error)
 					this.loading = false
 					this.dish = null
 					uni.showToast({
@@ -221,7 +219,6 @@
 					// 记录用户浏览历史（后端会根据15分钟规则自动处理浏览量增加）
 					try {
 						const response = await recordViewHistory(this.dishId)
-						console.log('浏览历史记录成功:', response)
 						
 						// 重新获取菜品信息以更新浏览量（如果后端增加了的话）
 						const dishRes = await getDishById(this.dishId)
@@ -229,7 +226,6 @@
 							this.dish.viewCount = dishRes.data.viewCount
 						}
 					} catch (error) {
-						console.log('记录浏览历史失败，可能用户未登录:', error)
 						// 未登录用户，直接增加浏览量（无法应用15分钟规则）
 						await increaseViewCount(this.dishId)
 						if (this.dish) {
@@ -239,7 +235,7 @@
 						this.recordLocalViewHistory()
 					}
 				} catch (error) {
-					console.error('记录浏览失败:', error)
+					// 记录浏览失败，忽略错误
 				}
 			},
 
@@ -286,7 +282,7 @@
 					
 					uni.setStorageSync('viewHistory', viewHistory)
 				} catch (error) {
-					console.error('记录本地浏览历史失败:', error)
+					// 记录本地浏览历史失败，忽略错误
 				}
 			},
 
@@ -307,9 +303,7 @@
 					try {
 						const response = await toggleFavorite(this.dishId)
 						backendResult = response.data
-						console.log('后端收藏接口调用成功:', backendResult)
 					} catch (error) {
-						console.log('后端收藏接口调用失败:', error)
 						uni.showToast({
 							title: error.message || '操作失败，请先登录',
 							icon: 'none'
@@ -359,7 +353,6 @@
 					}
 					
 				} catch (error) {
-					console.error('收藏操作失败:', error)
 					uni.showToast({
 						title: '操作失败',
 						icon: 'none'

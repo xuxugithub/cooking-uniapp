@@ -146,7 +146,6 @@
 					this.categories = res.data || []
 					this.loading = false
 				} catch (error) {
-					console.error('加载分类失败:', error)
 					this.loading = false
 					uni.showToast({
 						title: '加载失败，请重试',
@@ -179,7 +178,6 @@
 					this.hasMore = newDishes.length === this.pagination.size
 					this.loading = false
 				} catch (error) {
-					console.error('加载菜品失败:', error)
 					this.loading = false
 					uni.showToast({
 						title: '加载失败，请重试',
@@ -202,7 +200,6 @@
 					
 					await this.loadDishes()
 				} catch (error) {
-					console.error('加载更多失败:', error)
 					uni.showToast({
 						title: '加载失败',
 						icon: 'none'

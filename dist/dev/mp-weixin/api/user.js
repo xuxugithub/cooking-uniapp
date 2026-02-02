@@ -5,7 +5,7 @@ const wxLogin = (code, userInfo = null) => {
   if (userInfo) {
     data.userInfo = userInfo;
   }
-  return utils_request.post("/api/app/user/wx-login", data);
+  return utils_request.post("/api/app/user/wx-login", data, { loading: false });
 };
 const getUserInfo = () => {
   return utils_request.get("/api/app/user/info");
