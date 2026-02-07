@@ -3,7 +3,10 @@
 		<!-- 用户信息区域 -->
 		<view class="user-section">
 			<view class="user-info" v-if="hasUserInfo">
-				<image class="avatar" :src="userInfo.avatarUrl || '/static/default-avatar.svg'" mode="aspectFill"></image>
+				<view class="avatar-container">
+					<image v-if="userInfo.avatarUrl" class="avatar" :src="userInfo.avatarUrl" mode="aspectFill"></image>
+					<view v-else class="default-avatar">👤</view>
+				</view>
 				<view class="user-details">
 					<text class="nickname">{{userInfo.nickName}}</text>
 					<text class="welcome">欢迎使用厨小教</text>
@@ -23,7 +26,7 @@
 			</view>
 			
 			<view class="login-section" v-else>
-				<text class="default-avatar">👤</text>
+				<text class="login-default-avatar">👤</text>
 				<view class="login-info">
 					<text class="login-title">授权后享受更多功能</text>
 					<text class="login-desc">收藏菜品、记录浏览历史</text>
@@ -75,7 +78,10 @@
 				</view>
 				<view class="user-list" v-if="userList.length > 0">
 					<view class="user-item" v-for="user in userList" :key="user.userId">
-						<image class="user-avatar" :src="user.avatarUrl || '/static/default-avatar.svg'" mode="aspectFill"></image>
+						<view class="user-avatar-container">
+							<image v-if="user.avatarUrl" class="user-avatar" :src="user.avatarUrl" mode="aspectFill"></image>
+							<view v-else class="user-default-avatar">👤</view>
+						</view>
 						<view class="user-info">
 							<text class="user-nickname">{{user.nickName}}</text>
 						</view>
@@ -290,7 +296,7 @@
 					const mockUserInfo = {
 						id: 1,
 						nickName: 'H5用户',
-						avatarUrl: '/static/default-avatar.svg',
+						avatarUrl: '',
 						fansCount: 0,
 						followCount: 0
 					}

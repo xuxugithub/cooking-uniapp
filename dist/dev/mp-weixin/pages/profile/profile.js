@@ -295,45 +295,51 @@ const _sfc_main = {
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
     a: $data.hasUserInfo
-  }, $data.hasUserInfo ? {
-    b: $data.userInfo.avatarUrl || "/static/default-avatar.svg",
-    c: common_vendor.t($data.userInfo.nickName),
-    d: common_vendor.t($data.userStats.followCount),
-    e: common_vendor.o((...args) => $options.onShowFollowList && $options.onShowFollowList(...args), "27"),
-    f: common_vendor.t($data.userStats.fansCount),
-    g: common_vendor.o((...args) => $options.onShowFansList && $options.onShowFansList(...args), "97")
-  } : {
-    h: common_vendor.o((...args) => $options.onGetUserProfile && $options.onGetUserProfile(...args), "c9")
+  }, $data.hasUserInfo ? common_vendor.e({
+    b: $data.userInfo.avatarUrl
+  }, $data.userInfo.avatarUrl ? {
+    c: $data.userInfo.avatarUrl
+  } : {}, {
+    d: common_vendor.t($data.userInfo.nickName),
+    e: common_vendor.t($data.userStats.followCount),
+    f: common_vendor.o((...args) => $options.onShowFollowList && $options.onShowFollowList(...args), "7f"),
+    g: common_vendor.t($data.userStats.fansCount),
+    h: common_vendor.o((...args) => $options.onShowFansList && $options.onShowFansList(...args), "f3")
+  }) : {
+    i: common_vendor.o((...args) => $options.onGetUserProfile && $options.onGetUserProfile(...args), "84")
   }, {
-    i: common_vendor.o((...args) => $options.onViewFavorites && $options.onViewFavorites(...args), "07"),
-    j: common_vendor.o((...args) => $options.onClearCache && $options.onClearCache(...args), "74"),
-    k: common_vendor.o((...args) => $options.onFeedback && $options.onFeedback(...args), "52"),
-    l: common_vendor.o((...args) => $options.onAbout && $options.onAbout(...args), "16"),
-    m: $data.showUserListModal
+    j: common_vendor.o((...args) => $options.onViewFavorites && $options.onViewFavorites(...args), "cb"),
+    k: common_vendor.o((...args) => $options.onClearCache && $options.onClearCache(...args), "3c"),
+    l: common_vendor.o((...args) => $options.onFeedback && $options.onFeedback(...args), "1a"),
+    m: common_vendor.o((...args) => $options.onAbout && $options.onAbout(...args), "6c"),
+    n: $data.showUserListModal
   }, $data.showUserListModal ? common_vendor.e({
-    n: common_vendor.t($data.modalTitle),
-    o: common_vendor.o((...args) => $options.closeUserListModal && $options.closeUserListModal(...args), "bd"),
-    p: $data.userList.length > 0
+    o: common_vendor.t($data.modalTitle),
+    p: common_vendor.o((...args) => $options.closeUserListModal && $options.closeUserListModal(...args), "2a"),
+    q: $data.userList.length > 0
   }, $data.userList.length > 0 ? {
-    q: common_vendor.f($data.userList, (user, k0, i0) => {
+    r: common_vendor.f($data.userList, (user, k0, i0) => {
       return common_vendor.e({
-        a: user.avatarUrl || "/static/default-avatar.svg",
-        b: common_vendor.t(user.nickName),
-        c: user.userId !== $data.currentUserId
-      }, user.userId !== $data.currentUserId ? {
-        d: common_vendor.t(user.isFollowed ? "已关注" : "关注"),
-        e: user.isFollowed ? 1 : "",
-        f: common_vendor.o(($event) => $options.toggleFollow(user), user.userId)
+        a: user.avatarUrl
+      }, user.avatarUrl ? {
+        b: user.avatarUrl
       } : {}, {
-        g: user.userId
+        c: common_vendor.t(user.nickName),
+        d: user.userId !== $data.currentUserId
+      }, user.userId !== $data.currentUserId ? {
+        e: common_vendor.t(user.isFollowed ? "已关注" : "关注"),
+        f: user.isFollowed ? 1 : "",
+        g: common_vendor.o(($event) => $options.toggleFollow(user), user.userId)
+      } : {}, {
+        h: user.userId
       });
     })
   } : {
-    r: common_vendor.t($data.modalTitle === "关注列表" ? "暂无关注" : "暂无粉丝")
+    s: common_vendor.t($data.modalTitle === "关注列表" ? "暂无关注" : "暂无粉丝")
   }, {
-    s: common_vendor.o(() => {
-    }, "b8"),
-    t: common_vendor.o((...args) => $options.closeUserListModal && $options.closeUserListModal(...args), "f9")
+    t: common_vendor.o(() => {
+    }, "ed"),
+    v: common_vendor.o((...args) => $options.closeUserListModal && $options.closeUserListModal(...args), "b3")
   }) : {});
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-04d37cba"]]);
