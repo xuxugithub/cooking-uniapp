@@ -5,6 +5,8 @@
 </template>
 
 <script>
+	import { APP_ENV, API_BASE_URL } from './config/app.js'
+
 	export default {
 		onLaunch: function() {
 			// 初始化应用
@@ -57,7 +59,8 @@
 		globalData: {
 			userInfo: null,
 			systemInfo: null,
-			baseUrl: 'https://cook.xuaq.top'
+			env: APP_ENV,
+			baseUrl: API_BASE_URL
 		}
 	}
 </script>

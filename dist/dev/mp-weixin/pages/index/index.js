@@ -26,11 +26,33 @@ const _sfc_main = {
         total: 0
       },
       hasMore: true,
-      loadingMore: false
+      loadingMore: false,
+      assistantPosition: {
+        left: 0,
+        top: 0
+      },
+      assistantBounds: {
+        minLeft: 0,
+        maxLeft: 0,
+        minTop: 0,
+        maxTop: 0
+      },
+      assistantDragState: {
+        touching: false,
+        startX: 0,
+        startY: 0,
+        startLeft: 0,
+        startTop: 0,
+        moved: false
+      }
     };
   },
   onLoad() {
+    this.initAssistantPosition();
     this.loadData();
+  },
+  onResize() {
+    this.refreshAssistantBounds();
   },
   onShow() {
     if (this.allDishes.length > 0) {
@@ -56,8 +78,8 @@ const _sfc_main = {
       try {
         this.loading = true;
         const [bannerRes, categoryRes] = await Promise.all([
-          api_banner.getBannerList(),
-          api_category.getCategoryList()
+          api_banner.getBannerList({ loading: false }),
+          api_category.getCategoryList({ loading: false })
         ]);
         this.banners = bannerRes.data || [];
         this.categories = categoryRes.data || [];
@@ -89,7 +111,7 @@ const _sfc_main = {
           current: this.pagination.current,
           size: this.pagination.size
         };
-        const res = await api_dish.getAllDishes(params);
+        const res = await api_dish.getAllDishes(params, { loading: false });
         const newDishes = ((_a = res.data) == null ? void 0 : _a.records) || [];
         this.allDishes = this.pagination.current === 1 ? newDishes : [...this.allDishes, ...newDishes];
         this.pagination = {
@@ -133,7 +155,7 @@ const _sfc_main = {
           current: 1,
           size: this.allDishes.length || this.pagination.size
         };
-        const res = await api_dish.getAllDishes(params);
+        const res = await api_dish.getAllDishes(params, { loading: false });
         const refreshedDishes = ((_a = res.data) == null ? void 0 : _a.records) || [];
         this.allDishes = refreshedDishes;
         this.pagination = {
@@ -196,6 +218,103 @@ const _sfc_main = {
           url: `/pages/search/search?keyword=${encodeURIComponent(keyword.trim())}`
         });
       }
+    },
+    // 进入小助手
+    openAssistant() {
+      common_vendor.index.navigateTo({
+        url: "/pages/assistant/assistant"
+      });
+    },
+    initAssistantPosition() {
+      this.refreshAssistantBounds();
+      const cache = common_vendor.index.getStorageSync("assistantEntryPosition") || {};
+      const hasValidCache = Number.isFinite(cache.left) && Number.isFinite(cache.top);
+      if (hasValidCache) {
+        this.assistantPosition = {
+          left: this.clampValue(cache.left, this.assistantBounds.minLeft, this.assistantBounds.maxLeft),
+          top: this.clampValue(cache.top, this.assistantBounds.minTop, this.assistantBounds.maxTop)
+        };
+        return;
+      }
+      const left = this.assistantBounds.maxLeft;
+      const top = this.clampValue(this.assistantBounds.maxTop - 85, this.assistantBounds.minTop, this.assistantBounds.maxTop);
+      this.assistantPosition = { left, top };
+    },
+    refreshAssistantBounds() {
+      var _a;
+      const info = common_vendor.index.getSystemInfoSync();
+      const margin = 12;
+      const avatarSize = 52;
+      const helperHeight = 82;
+      const navHeight = (info.statusBarHeight || 20) + 44;
+      const safeBottom = ((_a = info.safeAreaInsets) == null ? void 0 : _a.bottom) || 0;
+      const tabBarHeight = 50 + safeBottom;
+      const maxLeft = Math.max(margin, info.windowWidth - avatarSize - margin);
+      const maxTop = Math.max(navHeight + margin, info.windowHeight - helperHeight - tabBarHeight - margin);
+      this.assistantBounds = {
+        minLeft: margin,
+        maxLeft,
+        minTop: navHeight + margin,
+        maxTop
+      };
+      this.assistantPosition = {
+        left: this.clampValue(this.assistantPosition.left, this.assistantBounds.minLeft, this.assistantBounds.maxLeft),
+        top: this.clampValue(this.assistantPosition.top, this.assistantBounds.minTop, this.assistantBounds.maxTop)
+      };
+    },
+    onAssistantTouchStart(e) {
+      const touch = e.touches && e.touches[0];
+      if (!touch)
+        return;
+      this.assistantDragState = {
+        touching: true,
+        startX: touch.clientX,
+        startY: touch.clientY,
+        startLeft: this.assistantPosition.left,
+        startTop: this.assistantPosition.top,
+        moved: false
+      };
+    },
+    onAssistantTouchMove(e) {
+      const touch = e.touches && e.touches[0];
+      if (!touch || !this.assistantDragState.touching)
+        return;
+      const deltaX = touch.clientX - this.assistantDragState.startX;
+      const deltaY = touch.clientY - this.assistantDragState.startY;
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+      if (distance > 6) {
+        this.assistantDragState.moved = true;
+      }
+      this.assistantPosition = {
+        left: this.clampValue(
+          this.assistantDragState.startLeft + deltaX,
+          this.assistantBounds.minLeft,
+          this.assistantBounds.maxLeft
+        ),
+        top: this.clampValue(
+          this.assistantDragState.startTop + deltaY,
+          this.assistantBounds.minTop,
+          this.assistantBounds.maxTop
+        )
+      };
+    },
+    onAssistantTouchEnd() {
+      if (!this.assistantDragState.touching) {
+        return;
+      }
+      const moved = this.assistantDragState.moved;
+      this.assistantDragState.touching = false;
+      common_vendor.index.setStorageSync("assistantEntryPosition", {
+        left: this.assistantPosition.left,
+        top: this.assistantPosition.top
+      });
+      if (!moved) {
+        this.openAssistant();
+      }
+    },
+    clampValue(value, min, max) {
+      const safeValue = Number.isFinite(value) ? value : min;
+      return Math.min(Math.max(safeValue, min), max);
     },
     // 获取图片URL
     getImageUrl(imagePath) {
@@ -282,7 +401,14 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     p: $data.loading
   }, $data.loading ? {} : {}, {
     q: !$data.loading && $data.banners.length === 0 && $data.categories.length === 0 && $data.allDishes.length === 0
-  }, !$data.loading && $data.banners.length === 0 && $data.categories.length === 0 && $data.allDishes.length === 0 ? {} : {});
+  }, !$data.loading && $data.banners.length === 0 && $data.categories.length === 0 && $data.allDishes.length === 0 ? {} : {}, {
+    r: `${$data.assistantPosition.left}px`,
+    s: `${$data.assistantPosition.top}px`,
+    t: common_vendor.o((...args) => $options.onAssistantTouchStart && $options.onAssistantTouchStart(...args), "75"),
+    v: common_vendor.o((...args) => $options.onAssistantTouchMove && $options.onAssistantTouchMove(...args), "a9"),
+    w: common_vendor.o((...args) => $options.onAssistantTouchEnd && $options.onAssistantTouchEnd(...args), "a5"),
+    x: common_vendor.o((...args) => $options.onAssistantTouchEnd && $options.onAssistantTouchEnd(...args), "7c")
+  });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-83a5a03c"]]);
 wx.createPage(MiniProgramPage);

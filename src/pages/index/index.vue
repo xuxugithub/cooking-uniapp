@@ -1,4 +1,4 @@
-<template>
+﻿<template>
 	<view class="container">
 		<!-- 顶部搜索栏 -->
 		<view class="top-search-bar">
@@ -125,9 +125,21 @@
 		<!-- 空状态 -->
 		<view class="empty" v-if="!loading && banners.length === 0 && categories.length === 0 && allDishes.length === 0">
 			<text class="empty-icon">🍽️</text>
-			<text class="empty-text">暂无数据</text>
+            			<text class="empty-text">暂无数据</text>
 		</view>
-		
+
+		<!-- 小助手入口 -->
+		<view
+			class="assistant-entry"
+			:style="{ left: `${assistantPosition.left}px`, top: `${assistantPosition.top}px` }"
+			@touchstart.stop="onAssistantTouchStart"
+			@touchmove.stop.prevent="onAssistantTouchMove"
+			@touchend.stop="onAssistantTouchEnd"
+			@touchcancel.stop="onAssistantTouchEnd"
+		>
+			<view class="assistant-avatar">🤖</view>
+			<text class="assistant-text">小助手</text>
+		</view>
 	</view>
 </template>
 
@@ -158,11 +170,33 @@
 					total: 0
 				},
 				hasMore: true,
-				loadingMore: false
+				loadingMore: false,
+				assistantPosition: {
+					left: 0,
+					top: 0
+				},
+				assistantBounds: {
+					minLeft: 0,
+					maxLeft: 0,
+					minTop: 0,
+					maxTop: 0
+				},
+				assistantDragState: {
+					touching: false,
+					startX: 0,
+					startY: 0,
+					startLeft: 0,
+					startTop: 0,
+					moved: false
+				}
 			}
 		},
 		onLoad() {
+			this.initAssistantPosition()
 			this.loadData()
+		},
+		onResize() {
+			this.refreshAssistantBounds()
 		},
 		onShow() {
 			// 每次显示页面时刷新菜品数据以获取最新的浏览量
@@ -190,8 +224,8 @@
 					this.loading = true
 					
 					const [bannerRes, categoryRes] = await Promise.all([
-						getBannerList(),
-						getCategoryList()
+						getBannerList({ loading: false }),
+						getCategoryList({ loading: false })
 					])
 
 					this.banners = bannerRes.data || []
@@ -226,7 +260,7 @@
 						size: this.pagination.size
 					}
 
-					const res = await getAllDishes(params)
+					const res = await getAllDishes(params, { loading: false })
 					const newDishes = res.data?.records || []
 
 					this.allDishes = this.pagination.current === 1 ? newDishes : [...this.allDishes, ...newDishes]
@@ -275,7 +309,7 @@
 						size: this.allDishes.length || this.pagination.size
 					}
 
-					const res = await getAllDishes(params)
+					const res = await getAllDishes(params, { loading: false })
 					const refreshedDishes = res.data?.records || []
 
 					this.allDishes = refreshedDishes
@@ -352,6 +386,118 @@
 				}
 			},
 
+			// 进入小助手
+			openAssistant() {
+				uni.navigateTo({
+					url: '/pages/assistant/assistant'
+				})
+			},
+
+
+			initAssistantPosition() {
+				this.refreshAssistantBounds()
+				const cache = uni.getStorageSync('assistantEntryPosition') || {}
+				const hasValidCache = Number.isFinite(cache.left) && Number.isFinite(cache.top)
+
+				if (hasValidCache) {
+					this.assistantPosition = {
+						left: this.clampValue(cache.left, this.assistantBounds.minLeft, this.assistantBounds.maxLeft),
+						top: this.clampValue(cache.top, this.assistantBounds.minTop, this.assistantBounds.maxTop)
+					}
+					return
+				}
+
+				const left = this.assistantBounds.maxLeft
+				const top = this.clampValue(this.assistantBounds.maxTop - 85, this.assistantBounds.minTop, this.assistantBounds.maxTop)
+				this.assistantPosition = { left, top }
+			},
+
+			refreshAssistantBounds() {
+				const info = uni.getSystemInfoSync()
+				const margin = 12
+				const avatarSize = 52
+				const helperHeight = 82
+				const navHeight = (info.statusBarHeight || 20) + 44
+				const safeBottom = info.safeAreaInsets?.bottom || 0
+				const tabBarHeight = 50 + safeBottom
+
+				const maxLeft = Math.max(margin, info.windowWidth - avatarSize - margin)
+				const maxTop = Math.max(navHeight + margin, info.windowHeight - helperHeight - tabBarHeight - margin)
+
+				this.assistantBounds = {
+					minLeft: margin,
+					maxLeft,
+					minTop: navHeight + margin,
+					maxTop
+				}
+
+				this.assistantPosition = {
+					left: this.clampValue(this.assistantPosition.left, this.assistantBounds.minLeft, this.assistantBounds.maxLeft),
+					top: this.clampValue(this.assistantPosition.top, this.assistantBounds.minTop, this.assistantBounds.maxTop)
+				}
+			},
+
+			onAssistantTouchStart(e) {
+				const touch = e.touches && e.touches[0]
+				if (!touch) return
+
+				this.assistantDragState = {
+					touching: true,
+					startX: touch.clientX,
+					startY: touch.clientY,
+					startLeft: this.assistantPosition.left,
+					startTop: this.assistantPosition.top,
+					moved: false
+				}
+			},
+
+			onAssistantTouchMove(e) {
+				const touch = e.touches && e.touches[0]
+				if (!touch || !this.assistantDragState.touching) return
+
+				const deltaX = touch.clientX - this.assistantDragState.startX
+				const deltaY = touch.clientY - this.assistantDragState.startY
+				const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
+				if (distance > 6) {
+					this.assistantDragState.moved = true
+				}
+
+				this.assistantPosition = {
+					left: this.clampValue(
+						this.assistantDragState.startLeft + deltaX,
+						this.assistantBounds.minLeft,
+						this.assistantBounds.maxLeft
+					),
+					top: this.clampValue(
+						this.assistantDragState.startTop + deltaY,
+						this.assistantBounds.minTop,
+						this.assistantBounds.maxTop
+					)
+				}
+			},
+
+			onAssistantTouchEnd() {
+				if (!this.assistantDragState.touching) {
+					return
+				}
+
+				const moved = this.assistantDragState.moved
+				this.assistantDragState.touching = false
+
+				uni.setStorageSync('assistantEntryPosition', {
+					left: this.assistantPosition.left,
+					top: this.assistantPosition.top
+				})
+
+				if (!moved) {
+					this.openAssistant()
+				}
+			},
+
+			clampValue(value, min, max) {
+				const safeValue = Number.isFinite(value) ? value : min
+				return Math.min(Math.max(safeValue, min), max)
+			},
 			// 获取图片URL
 			getImageUrl(imagePath) {
 				return getImageUrl(imagePath)
@@ -370,3 +516,4 @@
 <style lang="scss" scoped>
 	@import url("./index.scss");
 </style>
+

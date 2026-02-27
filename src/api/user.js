@@ -15,11 +15,6 @@ export const getUserInfo = () => {
   return get('/api/app/user/info')
 }
 
-// 更新用户信息
-export const updateUserInfo = (userInfo) => {
-  return post('/api/app/user/update', userInfo)
-}
-
 // 获取用户收藏列表
 export const getUserFavorites = (params = {}) => {
   return get('/api/app/favorite/list', params)

@@ -12,7 +12,7 @@ const _sfc_main = {
       loading: true,
       isFavorite: false,
       // 浏览记录相关
-      enterTime: null,
+      skipInitialOnShow: true,
       hasRecordedView: false,
       viewTimer: null
     };
@@ -20,18 +20,18 @@ const _sfc_main = {
   onLoad(options) {
     if (options.id) {
       this.dishId = options.id;
-      this.enterTime = Date.now();
       this.hasRecordedView = false;
       this.loadDishDetail();
       this.checkFavoriteStatus();
     }
   },
   onShow() {
-    if (this.dishId && !this.enterTime) {
-      this.enterTime = Date.now();
-      this.startViewTimer();
+    if (this.skipInitialOnShow) {
+      this.skipInitialOnShow = false;
+      return;
     }
     if (this.dishId) {
+      this.hasRecordedView = false;
       this.loadDishDetail();
     }
   },
@@ -40,6 +40,14 @@ const _sfc_main = {
   },
   onUnload() {
     this.clearViewTimer();
+  },
+  onShareAppMessage() {
+    var _a, _b;
+    return {
+      title: `推荐一道美味的${(_a = this.dish) == null ? void 0 : _a.name}`,
+      path: `/pages/dish-detail/dish-detail?id=${this.dishId}`,
+      imageUrl: utils_util.getImageUrl((_b = this.dish) == null ? void 0 : _b.image)
+    };
   },
   methods: {
     // 加载菜品详情
@@ -85,9 +93,11 @@ const _sfc_main = {
     },
     // 开始浏览计时
     startViewTimer() {
-      if (this.hasRecordedView)
+      if (this.hasRecordedView || !this.dishId)
         return;
+      this.clearViewTimer();
       this.viewTimer = setTimeout(() => {
+        this.viewTimer = null;
         this.recordValidView();
       }, 5e3);
     },
@@ -105,7 +115,7 @@ const _sfc_main = {
       this.hasRecordedView = true;
       try {
         try {
-          const response = await api_dish.recordViewHistory(this.dishId);
+          await api_dish.recordViewHistory(this.dishId);
           const dishRes = await api_dish.getDishById(this.dishId);
           if (dishRes.data) {
             this.dish.viewCount = dishRes.data.viewCount;
@@ -222,15 +232,6 @@ const _sfc_main = {
         current: url,
         urls: [url]
       });
-    },
-    // 分享
-    onShareAppMessage() {
-      var _a, _b;
-      return {
-        title: `推荐一道美味的${(_a = this.dish) == null ? void 0 : _a.name}`,
-        path: `/pages/dish-detail/dish-detail?id=${this.dishId}`,
-        imageUrl: utils_util.getImageUrl((_b = this.dish) == null ? void 0 : _b.image)
-      };
     },
     // 获取图片URL
     getImageUrl(imagePath) {

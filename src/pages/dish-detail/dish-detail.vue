@@ -104,7 +104,7 @@
 				loading: true,
 				isFavorite: false,
 				// 浏览记录相关
-				enterTime: null,
+				skipInitialOnShow: true,
 				hasRecordedView: false,
 				viewTimer: null
 			}
@@ -112,20 +112,21 @@
 		onLoad(options) {
 			if (options.id) {
 				this.dishId = options.id
-				this.enterTime = Date.now()
 				this.hasRecordedView = false
 				this.loadDishDetail()
 				this.checkFavoriteStatus()
 			}
 		},
 		onShow() {
-			// 重置进入时间（从其他页面返回时）
-			if (this.dishId && !this.enterTime) {
-				this.enterTime = Date.now()
-				this.startViewTimer()
+			// 跳过首次 onShow，避免与 onLoad 重复请求
+			if (this.skipInitialOnShow) {
+				this.skipInitialOnShow = false
+				return
 			}
+
 			// 重新加载详情以获取最新的收藏状态
 			if (this.dishId) {
+				this.hasRecordedView = false
 				this.loadDishDetail()
 			}
 		},
@@ -136,6 +137,13 @@
 		onUnload() {
 			// 页面卸载时清除定时器
 			this.clearViewTimer()
+		},
+		onShareAppMessage() {
+			return {
+				title: `推荐一道美味的${this.dish?.name}`,
+				path: `/pages/dish-detail/dish-detail?id=${this.dishId}`,
+				imageUrl: getImageUrl(this.dish?.image)
+			}
 		},
 		methods: {
 			// 加载菜品详情
@@ -193,10 +201,13 @@
 
 			// 开始浏览计时
 			startViewTimer() {
-				if (this.hasRecordedView) return
+				if (this.hasRecordedView || !this.dishId) return
+
+				this.clearViewTimer()
 				
 				// 5秒后记录有效浏览（增加时间以确保是有意义的浏览）
 				this.viewTimer = setTimeout(() => {
+					this.viewTimer = null
 					this.recordValidView()
 				}, 5000)
 			},
@@ -218,7 +229,7 @@
 				try {
 					// 记录用户浏览历史（后端会根据15分钟规则自动处理浏览量增加）
 					try {
-						const response = await recordViewHistory(this.dishId)
+						await recordViewHistory(this.dishId)
 						
 						// 重新获取菜品信息以更新浏览量（如果后端增加了的话）
 						const dishRes = await getDishById(this.dishId)
@@ -367,15 +378,6 @@
 					current: url,
 					urls: [url]
 				})
-			},
-
-			// 分享
-			onShareAppMessage() {
-				return {
-					title: `推荐一道美味的${this.dish?.name}`,
-					path: `/pages/dish-detail/dish-detail?id=${this.dishId}`,
-					imageUrl: getImageUrl(this.dish?.image)
-				}
 			},
 
 			// 获取图片URL

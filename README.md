@@ -23,8 +23,11 @@ npm install
 ## 运行（开发）
 
 ```bash
-# 微信小程序
-npm run dev:mp-weixin
+# 微信小程序（开发环境）
+npm run dev:mp-weixin:dev
+
+# 微信小程序（生产环境）
+npm run dev:mp-weixin:prod
 
 # H5
 npm run dev:h5
@@ -36,8 +39,11 @@ npm run dev:app-plus
 ## 构建（生产）
 
 ```bash
-# 微信小程序
-npm run build:mp-weixin
+# 微信小程序（开发环境）
+npm run build:mp-weixin:dev
+
+# 微信小程序（生产环境）
+npm run build:mp-weixin:prod
 
 # H5
 npm run build:h5
@@ -45,6 +51,12 @@ npm run build:h5
 # App（app-plus）
 npm run build:app-plus
 ```
+
+## 环境说明
+
+- `dev`：开发环境，接口地址 `http://localhost:8080`
+- `prod`：生产环境，接口地址 `https://cook.xuaq.top`
+- 默认环境为 `prod`
 
 ## 依赖版本说明
 

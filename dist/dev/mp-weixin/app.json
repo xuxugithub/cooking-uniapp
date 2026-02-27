@@ -3,6 +3,7 @@
     "pages/index/index",
     "pages/category/category",
     "pages/search/search",
+    "pages/assistant/assistant",
     "pages/favorites/favorites",
     "pages/profile/profile",
     "pages/dish-detail/dish-detail"
@@ -44,11 +45,6 @@
         "text": "我的"
       }
     ]
-  },
-  "permission": {
-    "scope.userLocation": {
-      "desc": "你的位置信息将用于小程序位置接口的效果展示"
-    }
   },
   "requiredPrivateInfos": [],
   "usingComponents": {}

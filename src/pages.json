@@ -28,6 +28,16 @@
 			}
 		},
 		{
+			"path": "pages/assistant/assistant",
+			"style": {
+				"navigationBarTitleText": "小助手",
+				"navigationBarBackgroundColor": "#ff6b35",
+				"navigationBarTextStyle": "white",
+				"backgroundColor": "#f5f5f5",
+				"enablePullDownRefresh": true
+			}
+		},
+		{
 			"path": "pages/favorites/favorites",
 			"style": {
 				"navigationBarTitleText": "我的收藏",

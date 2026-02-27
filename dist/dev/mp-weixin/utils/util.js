@@ -1,18 +1,19 @@
 "use strict";
-require("../common/vendor.js");
+const config_app = require("../config/app.js");
 const getImageUrl = (imagePath) => {
   if (!imagePath)
     return "";
   if (imagePath.startsWith("http"))
     return imagePath;
-  return `https://cook.xuaq.top/api/admin/file/preview/${imagePath}`;
+  return `${config_app.FILE_PREVIEW_BASE_URL}/${imagePath}`;
 };
 const debounce = (func, wait) => {
   let timeout;
   return function executedFunction(...args) {
+    const context = this;
     const later = () => {
       clearTimeout(timeout);
-      func(...args);
+      func.apply(context, args);
     };
     clearTimeout(timeout);
     timeout = setTimeout(later, wait);

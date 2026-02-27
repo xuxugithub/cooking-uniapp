@@ -1,5 +1,4 @@
-// 请求工具类
-const BASE_URL = 'https://cook.xuaq.top'
+import { API_BASE_URL } from '../config/app.js'
 
 // 请求拦截器
 const request = (options) => {
@@ -35,7 +34,7 @@ const request = (options) => {
     const token = uni.getStorageSync('token')
     
     uni.request({
-      url: BASE_URL + options.url,
+      url: API_BASE_URL + options.url,
       method: options.method || 'GET',
       data: options.data || {},
       header: {
@@ -54,7 +53,7 @@ const request = (options) => {
           } else {
             // 业务错误
             uni.showToast({
-              title: res.data.message || '请求失败',
+              title: res.data.message || res.data.msg || '请求失败',
               icon: 'none'
             })
             reject(res.data)

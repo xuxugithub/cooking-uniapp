@@ -1,10 +1,12 @@
 "use strict";
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
 const common_vendor = require("./common/vendor.js");
+const config_app = require("./config/app.js");
 if (!Math) {
   "./pages/index/index.js";
   "./pages/category/category.js";
   "./pages/search/search.js";
+  "./pages/assistant/assistant.js";
   "./pages/favorites/favorites.js";
   "./pages/profile/profile.js";
   "./pages/dish-detail/dish-detail.js";
@@ -52,7 +54,8 @@ const _sfc_main = {
   globalData: {
     userInfo: null,
     systemInfo: null,
-    baseUrl: "https://cook.xuaq.top"
+    env: config_app.APP_ENV,
+    baseUrl: config_app.API_BASE_URL
   }
 };
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
@@ -61,7 +64,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
 const App = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);
 function createApp() {
   const app = common_vendor.createSSRApp(App);
-  app.config.globalProperties.$baseUrl = "https://cook.xuaq.top";
+  app.config.globalProperties.$baseUrl = config_app.API_BASE_URL;
   return {
     app
   };

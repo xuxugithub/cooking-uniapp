@@ -24,8 +24,8 @@ const toggleFavorite = (dishId) => {
 const recordViewHistory = (dishId) => {
   return utils_request.post(`/api/app/dish/${dishId}/view-history`);
 };
-const getAllDishes = (params = {}) => {
-  return utils_request.get("/api/app/dish/all", params);
+const getAllDishes = (params = {}, options = {}) => {
+  return utils_request.get("/api/app/dish/all", params, options);
 };
 exports.getAllDishes = getAllDishes;
 exports.getDishById = getDishById;

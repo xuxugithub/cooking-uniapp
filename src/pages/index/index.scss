@@ -419,3 +419,40 @@
 .empty-text {
   font-size: 30rpx;
 }
+
+.assistant-entry {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 99;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.assistant-avatar {
+  width: 104rpx;
+  height: 104rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff6b35, #ff69b4);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 52rpx;
+  box-shadow: 0 10rpx 30rpx rgba(255, 107, 53, 0.35);
+}
+
+.assistant-entry:active .assistant-avatar {
+  transform: scale(0.95);
+}
+
+.assistant-text {
+  font-size: 22rpx;
+  color: #ff6b35;
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 6rpx 14rpx;
+  box-shadow: 0 4rpx 14rpx rgba(0, 0, 0, 0.08);
+}

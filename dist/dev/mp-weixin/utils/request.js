@@ -1,6 +1,6 @@
 "use strict";
 const common_vendor = require("../common/vendor.js");
-const BASE_URL = "https://cook.xuaq.top";
+const config_app = require("../config/app.js");
 const request = (options) => {
   return new Promise((resolve, reject) => {
     let loadingShown = false;
@@ -27,7 +27,7 @@ const request = (options) => {
     };
     const token = common_vendor.index.getStorageSync("token");
     common_vendor.index.request({
-      url: BASE_URL + options.url,
+      url: config_app.API_BASE_URL + options.url,
       method: options.method || "GET",
       data: options.data || {},
       header: {
@@ -42,7 +42,7 @@ const request = (options) => {
             resolve(res.data);
           } else {
             common_vendor.index.showToast({
-              title: res.data.message || "请求失败",
+              title: res.data.message || res.data.msg || "请求失败",
               icon: "none"
             });
             reject(res.data);

@@ -25,16 +25,6 @@ export const searchDish = (keyword, params = {}) => {
   return get('/api/app/dish/search', { keyword, ...params })
 }
 
-// 获取热门菜品
-export const getHotDishes = (params = {}) => {
-  return get('/api/app/dish/hot', params)
-}
-
-// 获取推荐菜品
-export const getRecommendDishes = (params = {}) => {
-  return get('/api/app/dish/recommend', params)
-}
-
 // 增加浏览量
 export const increaseViewCount = (dishId) => {
   return post(`/api/app/dish/${dishId}/view`)
@@ -50,12 +40,7 @@ export const recordViewHistory = (dishId) => {
   return post(`/api/app/dish/${dishId}/view-history`)
 }
 
-// 获取个人推荐菜品列表（基于用户浏览历史）
-export const getPersonalRecommendDishes = (params = {}) => {
-  return get('/api/app/dish/personal-recommend', params)
-}
-
 // 获取所有菜品列表（支持多种排序）
-export const getAllDishes = (params = {}) => {
-  return get('/api/app/dish/all', params)
+export const getAllDishes = (params = {}, options = {}) => {
+  return get('/api/app/dish/all', params, options)
 }
