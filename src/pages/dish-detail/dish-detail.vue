@@ -315,10 +315,25 @@
 						const response = await toggleFavorite(this.dishId)
 						backendResult = response.data
 					} catch (error) {
-						uni.showToast({
-							title: error.message || '操作失败，请先登录',
-							icon: 'none'
-						})
+						// 检查是否需要登录
+						if (error.needLogin) {
+							uni.showModal({
+								title: '提示',
+								content: '收藏功能需要登录，是否前往登录？',
+								success: (res) => {
+									if (res.confirm) {
+										uni.switchTab({
+											url: '/pages/profile/profile'
+										})
+									}
+								}
+							})
+						} else {
+							uni.showToast({
+								title: error.message || '操作失败',
+								icon: 'none'
+							})
+						}
 						return
 					}
 					

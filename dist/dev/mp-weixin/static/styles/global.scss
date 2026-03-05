@@ -1,0 +1,38 @@
+/* 全局样式 */
+
+/* 颜色变量 */
+
+/* 通用样式 */
+.flex {
+  display: flex;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.primary-color {
+  color: #ff69b4;
+}
+
+.primary-bg {
+  background-color: #ff69b4;
+}

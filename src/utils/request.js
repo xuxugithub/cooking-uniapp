@@ -59,14 +59,11 @@ const request = (options) => {
             reject(res.data)
           }
         } else if (res.statusCode === 401) {
-          // 未授权，清除token并跳转登录
+          // 未授权，清除token（静默处理，不显示提示）
           uni.removeStorageSync('token')
           uni.removeStorageSync('userInfo')
-          uni.showToast({
-            title: '请先登录',
-            icon: 'none'
-          })
-          reject(res)
+          // 不显示toast，让具体的业务逻辑决定是否提示用户
+          reject({ ...res, needLogin: true })
         } else {
           // HTTP错误
           uni.showToast({
