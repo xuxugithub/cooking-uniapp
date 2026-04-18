@@ -9,7 +9,7 @@
 				</view>
 				<view class="user-details">
 					<text class="nickname">{{userInfo.nickName}}</text>
-					<text class="welcome">欢迎使用厨小教</text>
+					<text class="welcome">欢迎使用菜味小记</text>
 					<!-- 粉丝和关注数 -->
 					<view class="user-follow-stats">
 						<view class="stat-item" @tap="onShowFollowList">
@@ -41,12 +41,10 @@
 				<view class="menu-item" @tap="onViewFavorites">
 					<view class="menu-icon">❤️</view>
 					<text class="menu-text">我的收藏</text>
-					<text class="menu-arrow">></text>
 				</view>
 				<view class="menu-item" @tap="onClearCache">
 					<view class="menu-icon">🗑️</view>
 					<text class="menu-text">清除缓存</text>
-					<text class="menu-arrow">></text>
 				</view>
 			</view>
 
@@ -54,17 +52,14 @@
 				<button class="menu-item" open-type="share">
 					<view class="menu-icon">📤</view>
 					<text class="menu-text">分享小程序</text>
-					<text class="menu-arrow">></text>
 				</button>
 				<view class="menu-item" @tap="onFeedback">
 					<view class="menu-icon">💬</view>
 					<text class="menu-text">意见反馈</text>
-					<text class="menu-arrow">></text>
 				</view>
 				<view class="menu-item" @tap="onAbout">
 					<view class="menu-icon">ℹ️</view>
 					<text class="menu-text">关于我们</text>
-					<text class="menu-arrow">></text>
 				</view>
 			</view>
 		</view>
@@ -337,11 +332,24 @@
 			onClearCache() {
 				uni.showModal({
 					title: '提示',
-					content: '确定要清除所有缓存数据吗？',
+					content: '确定要清除缓存数据吗？（登录状态不会被清除）',
 					success: (res) => {
 						if (res.confirm) {
+							// 保存登录相关数据
+							const token = uni.getStorageSync('token')
+							const userInfo = uni.getStorageSync('userInfo')
+
+							// 清除所有缓存
 							uni.clearStorageSync()
-							this.clearUserState()
+
+							// 恢复登录状态
+							if (token) {
+								uni.setStorageSync('token', token)
+							}
+							if (userInfo) {
+								uni.setStorageSync('userInfo', userInfo)
+							}
+
 							uni.showToast({
 								title: '清除成功',
 								icon: 'success'
@@ -366,18 +374,15 @@
 
 			// 意见反馈
 			onFeedback() {
-				uni.showToast({
-					title: '功能开发中',
-					icon: 'none'
+				uni.navigateTo({
+					url: '/pages/feedback/feedback'
 				})
 			},
 
 			// 关于我们
 			onAbout() {
-				uni.showModal({
-					title: '关于厨小教',
-					content: '厨小教 v1.0.0\n零基础学做菜超简单',
-					showCancel: false
+				uni.navigateTo({
+					url: '/pages/about/about'
 				})
 			},
 

@@ -219,6 +219,14 @@
 
 .menu-item::after {
   border: none;
+  content: '›';
+  position: absolute;
+  right: 35rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #ccc;
+  font-size: 36rpx;
+  font-weight: 600;
 }
 
 .menu-item:active {
@@ -246,11 +254,6 @@
   font-weight: 500;
 }
 
-.menu-arrow {
-  color: #ccc;
-  font-size: 28rpx;
-  font-weight: 600;
-}
 /* 用户列表弹窗样式 */
 .user-list-modal {
   position: fixed;

@@ -39,3 +39,13 @@ export const followUser = (followUserId) => {
 export const unfollowUser = (followUserId) => {
   return post('/api/app/follow/remove', { followUserId })
 }
+
+// 提交反馈
+export const submitFeedback = (data) => {
+  return post('/api/app/feedback/submit', data, { loading: false })
+}
+
+// 获取用户反馈列表
+export const getFeedbackList = () => {
+  return get('/api/app/feedback/list', {}, { loading: false })
+}

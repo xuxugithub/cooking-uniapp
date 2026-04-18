@@ -29,7 +29,7 @@
 					<image class="banner-image" :src="getImageUrl(item.image)" mode="aspectFill"></image>
 					<view class="banner-overlay">
 						<view class="banner-title" v-if="item.title">{{item.title}}</view>
-						<view class="banner-subtitle">厨小教，零基础学做菜超简单</view>
+						<view class="banner-subtitle">菜味小记，记录每一道美食的味道</view>
 					</view>
 				</swiper-item>
 			</swiper>
@@ -66,29 +66,36 @@
 		</view>
 
 		<!-- 全部菜品 -->
-		<view class="recommend-section" v-if="allDishes.length > 0">
+		<view class="recommend-section" v-if="allDishes.length > 0 || sortLoading">
 			<view class="section-header">
 				<text class="section-title">全部菜品</text>
 				<!-- 排序选项 -->
 				<view class="sort-options">
-					<view 
-						class="sort-item" 
+					<view
+						class="sort-item"
 						:class="currentSortType === item.key ? 'active' : ''"
-						v-for="item in sortOptions" 
-						:key="item.key" 
-						@tap="onSortChange" 
+						v-for="item in sortOptions"
+						:key="item.key"
+						@tap="onSortChange"
 						:data-sort="item.key"
 					>
 						{{item.name}}
 					</view>
 				</view>
 			</view>
+			<!-- 切换排序时的加载遮罩 -->
+			<view class="sort-loading-mask" v-if="sortLoading">
+				<view class="sort-loading-content">
+					<view class="loading-spinner"></view>
+					<text class="loading-text">加载中...</text>
+				</view>
+			</view>
 			<view class="recommend-grid">
-				<view 
-					class="recommend-item" 
-					v-for="item in allDishes" 
-					:key="item.id" 
-					@tap="onDishTap" 
+				<view
+					class="recommend-item"
+					v-for="item in allDishes"
+					:key="item.id"
+					@tap="onDishTap"
 					:data-dish="item"
 				>
 					<image class="recommend-image" :src="getImageUrl(item.image)" mode="aspectFill"></image>
@@ -128,8 +135,8 @@
             			<text class="empty-text">暂无数据</text>
 		</view>
 
-		<!-- 小助手入口 -->
-		<view
+		<!-- 小助手入口（已隐藏） -->
+		<!-- <view
 			class="assistant-entry"
 			:style="{ left: `${assistantPosition.left}px`, top: `${assistantPosition.top}px` }"
 			@touchstart.stop="onAssistantTouchStart"
@@ -139,7 +146,7 @@
 		>
 			<view class="assistant-avatar">🤖</view>
 			<text class="assistant-text">小助手</text>
-		</view>
+		</view> -->
 	</view>
 </template>
 
@@ -156,6 +163,7 @@
 				categories: [],
 				allDishes: [],
 				loading: true,
+				sortLoading: false, // 切换排序时的加载状态
 				searchValue: '',
 				// 菜品列表相关
 				currentSortType: 'collect', // collect-收藏最多, view-浏览最多, latest-最新上架
@@ -199,8 +207,11 @@
 			this.refreshAssistantBounds()
 		},
 		onShow() {
-			// 每次显示页面时刷新菜品数据以获取最新的浏览量
-			if (this.allDishes.length > 0) {
+			// 每次显示页面时检查数据，如果为空则重新加载
+			if (this.allDishes.length === 0 && !this.loading) {
+				this.loadData()
+			} else if (this.allDishes.length > 0) {
+				// 有数据时刷新菜品数据以获取最新的浏览量
 				this.refreshDishData()
 			}
 		},
@@ -263,13 +274,19 @@
 					const res = await getAllDishes(params, { loading: false })
 					const newDishes = res.data?.records || []
 
-					this.allDishes = this.pagination.current === 1 ? newDishes : [...this.allDishes, ...newDishes]
+					// 如果是切换排序（sortLoading为true），则替换整个数组；否则追加
+					if (this.sortLoading || this.pagination.current === 1) {
+						this.allDishes = newDishes
+					} else {
+						this.allDishes = [...this.allDishes, ...newDishes]
+					}
 					this.pagination = {
 						...this.pagination,
 						total: res.data?.total || 0
 					}
 					this.hasMore = newDishes.length === this.pagination.size
 				} catch (error) {
+					this.sortLoading = false  // 加载失败也要关闭遮罩
 					uni.showToast({
 						title: '加载菜品失败',
 						icon: 'none'
@@ -326,13 +343,16 @@
 			onSortChange(e) {
 				const sortType = e.currentTarget.dataset.sort
 				if (sortType === this.currentSortType) return
-				
+
 				this.currentSortType = sortType
 				this.pagination = { ...this.pagination, current: 1 }
-				this.allDishes = []
+				this.sortLoading = true  // 显示加载遮罩
 				this.hasMore = true
-				
-				this.loadAllDishes()
+
+				// 先加载新数据，加载完成后替换旧数据
+				this.loadAllDishes().then(() => {
+					this.sortLoading = false
+				})
 			},
 
 			// Banner点击事件
