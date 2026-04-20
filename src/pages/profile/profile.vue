@@ -3,12 +3,16 @@
 		<!-- 用户信息区域 -->
 		<view class="user-section">
 			<view class="user-info" v-if="hasUserInfo">
-				<view class="avatar-container">
-					<image v-if="userInfo.avatarUrl" class="avatar" :src="userInfo.avatarUrl" mode="aspectFill"></image>
-					<view v-else class="default-avatar">👤</view>
+				<view class="avatar-container" @tap="onChooseAvatar">
+					<!-- 默认展示微信头像，用户点击可更换 -->
+					<open-data type="userAvatarUrl" class="avatar-open-data"></open-data>
+					<text class="avatar-tip">点击更换</text>
 				</view>
 				<view class="user-details">
-					<text class="nickname">{{userInfo.nickName}}</text>
+					<!-- 默认展示微信昵称，用户点击可修改 -->
+					<view class="nickname-wrapper" @tap="onEditNickname">
+						<open-data type="userNickName" class="nickname-open-data"></open-data>
+					</view>
 					<text class="welcome">欢迎使用菜味小记</text>
 					<!-- 粉丝和关注数 -->
 					<view class="user-follow-stats">
@@ -24,14 +28,14 @@
 					</view>
 				</view>
 			</view>
-			
+
 			<view class="login-section" v-else>
 				<text class="login-default-avatar">👤</text>
 				<view class="login-info">
-					<text class="login-title">授权后享受更多功能</text>
+					<text class="login-title">登录后享受更多功能</text>
 					<text class="login-desc">收藏菜品、记录浏览历史</text>
 				</view>
-				<button class="login-btn" @tap="onGetUserProfile">立即授权</button>
+				<button class="login-btn" @tap="onLogin">立即登录</button>
 			</view>
 		</view>
 
@@ -80,8 +84,8 @@
 						<view class="user-info">
 							<text class="user-nickname">{{user.nickName}}</text>
 						</view>
-						<view class="follow-btn" v-if="user.userId !== currentUserId" 
-							  :class="{ 'followed': user.isFollowed }" 
+						<view class="follow-btn" v-if="user.userId !== currentUserId"
+							  :class="{ 'followed': user.isFollowed }"
 							  @tap="toggleFollow(user)">
 							<text>{{user.isFollowed ? '已关注' : '关注'}}</text>
 						</view>
@@ -92,11 +96,59 @@
 				</view>
 			</view>
 		</view>
+
+		<!-- 修改头像弹窗 -->
+		<view class="edit-modal" v-if="showAvatarModal" @tap="showAvatarModal = false">
+			<view class="edit-modal-content" @tap.stop>
+				<view class="edit-modal-header">
+					<text class="edit-modal-title">更换头像</text>
+					<text class="edit-modal-close" @tap="showAvatarModal = false">×</text>
+				</view>
+				<view class="edit-modal-body">
+					<text class="edit-modal-tip">点击下方按钮选择新头像</text>
+					<button class="choose-avatar-btn" open-type="chooseAvatar" @chooseavatar="onChooseAvatarResult">
+						<image v-if="tempAvatarUrl" class="preview-avatar" :src="tempAvatarUrl" mode="aspectFill"></image>
+						<view v-else class="choose-avatar-placeholder">
+							<text class="choose-avatar-icon">📷</text>
+							<text class="choose-avatar-text">选择头像</text>
+						</view>
+					</button>
+				</view>
+				<view class="edit-modal-footer">
+					<button class="edit-cancel-btn" @tap="showAvatarModal = false">取消</button>
+					<button class="edit-confirm-btn" @tap="saveAvatar" :disabled="!tempAvatarUrl">保存</button>
+				</view>
+			</view>
+		</view>
+
+		<!-- 修改昵称弹窗 -->
+		<view class="edit-modal" v-if="showNicknameModal" @tap="showNicknameModal = false">
+			<view class="edit-modal-content" @tap.stop>
+				<view class="edit-modal-header">
+					<text class="edit-modal-title">修改昵称</text>
+					<text class="edit-modal-close" @tap="showNicknameModal = false">×</text>
+				</view>
+				<view class="edit-modal-body">
+					<input
+						class="nickname-input"
+						type="nickname"
+						placeholder="请输入昵称"
+						v-model="tempNickname"
+						@input="onNicknameInput"
+					/>
+				</view>
+				<view class="edit-modal-footer">
+					<button class="edit-cancel-btn" @tap="showNicknameModal = false">取消</button>
+					<button class="edit-confirm-btn" @tap="saveNickname" :disabled="!tempNickname">保存</button>
+				</view>
+			</view>
+		</view>
 	</view>
 </template>
 
 <script>
-	import { wxLogin, getUserInfo, getFollowList, getFansList, followUser, unfollowUser } from '../../api/user.js'
+	import { wxLogin, getUserInfo, getFollowList, getFansList, followUser, unfollowUser, updateUserInfo } from '../../api/user.js'
+	import { API_BASE_URL } from '../../config/app.js'
 
 	export default {
 		data() {
@@ -111,7 +163,12 @@
 				showUserListModal: false,
 				modalTitle: '',
 				userList: [],
-				currentUserId: null
+				currentUserId: null,
+				// 修改头像/昵称弹窗
+				showAvatarModal: false,
+				showNicknameModal: false,
+				tempAvatarUrl: '',
+				tempNickname: ''
 			}
 		},
 		onLoad() {
@@ -173,56 +230,31 @@
 				}
 			},
 
-			// 获取用户信息
-			async onGetUserProfile() {
+			// 登录（静默登录）
+			async onLogin() {
 				// #ifdef MP-WEIXIN
 				try {
-					// 必须在用户点击事件中同步调用 getUserProfile
-					const userProfileRes = await uni.getUserProfile({
-						desc: '用于完善用户资料'
-					})
-					
-					if (!userProfileRes.userInfo) {
-						throw new Error('获取用户信息失败')
-					}
-					
-					// 然后获取登录凭证
-					const loginRes = await uni.login()
-					if (!loginRes.code) {
-						throw new Error('获取微信登录凭证失败')
-					}
-					
-					// 调用后端登录接口（禁用自动loading，手动控制）
-					const loginData = {
-						code: loginRes.code,
-						userInfo: {
-							nickName: userProfileRes.userInfo.nickName,
-							avatarUrl: userProfileRes.userInfo.avatarUrl,
-							gender: userProfileRes.userInfo.gender,
-							country: userProfileRes.userInfo.country,
-							province: userProfileRes.userInfo.province,
-							city: userProfileRes.userInfo.city
-						}
-					}
-					
-					// 手动显示loading
 					uni.showLoading({
 						title: '登录中...',
 						mask: true
 					})
-					
-					const res = await wxLogin(loginRes.code, loginData.userInfo)
-					
-					// 手动隐藏loading
+
+					const loginRes = await uni.login()
+					if (!loginRes.code) {
+						throw new Error('获取微信登录凭证失败')
+					}
+
+					// 静默登录，不获取用户详细信息
+					const res = await wxLogin(loginRes.code, null)
+
 					uni.hideLoading()
-					
+
 					if (res.data && res.data.token) {
 						uni.setStorageSync('token', res.data.token)
 						uni.setStorageSync('userInfo', res.data.userInfo)
 						this.hasUserInfo = true
 						this.userInfo = res.data.userInfo
 						this.currentUserId = res.data.userInfo.id
-						// 强制刷新页面状态
 						this.$forceUpdate()
 						this.loadUserStats()
 						uni.showToast({
@@ -233,58 +265,14 @@
 						throw new Error('登录接口返回数据异常')
 					}
 				} catch (error) {
-					// 确保隐藏loading
-					try {
-						uni.hideLoading()
-					} catch (e) {
-						// 忽略hideLoading错误
-					}
-					
-					// 如果是用户取消授权，提供友好提示
-					if (error.errMsg && error.errMsg.includes('getUserProfile:fail cancel')) {
-						uni.showToast({
-							title: '需要授权才能使用完整功能',
-							icon: 'none',
-							duration: 2000
-						})
-						return
-					}
-					
-					// 如果获取用户信息失败，尝试简化登录（只用code）
-					if (error.errMsg && error.errMsg.includes('getUserProfile:fail')) {
-						try {
-							const loginRes = await uni.login()
-							if (loginRes.code) {
-								// 使用禁用loading的方式调用API
-								const res = await wxLogin(loginRes.code, null)
-								if (res.data && res.data.token) {
-									uni.setStorageSync('token', res.data.token)
-									uni.setStorageSync('userInfo', res.data.userInfo)
-									this.hasUserInfo = true
-									this.userInfo = res.data.userInfo
-									this.currentUserId = res.data.userInfo.id
-									// 强制刷新页面状态
-									this.$forceUpdate()
-									this.loadUserStats()
-									uni.showToast({
-										title: '登录成功',
-										icon: 'success'
-									})
-									return
-								}
-							}
-						} catch (fallbackError) {
-							// 简化登录失败，继续显示错误
-						}
-					}
-					
+					uni.hideLoading()
 					uni.showToast({
 						title: error.message || '登录失败',
 						icon: 'none'
 					})
 				}
 				// #endif
-				
+
 				// #ifdef H5
 				// H5环境下的模拟登录
 				try {
@@ -295,9 +283,9 @@
 						fansCount: 0,
 						followCount: 0
 					}
-					
+
 					const mockToken = 'mock_token_' + Date.now()
-					
+
 					uni.setStorageSync('token', mockToken)
 					uni.setStorageSync('userInfo', mockUserInfo)
 					this.hasUserInfo = true
@@ -307,7 +295,7 @@
 						followCount: mockUserInfo.followCount,
 						fansCount: mockUserInfo.fansCount
 					}
-					
+
 					uni.showToast({
 						title: '模拟登录成功',
 						icon: 'success'
@@ -319,6 +307,78 @@
 					})
 				}
 				// #endif
+			},
+
+			// 选择头像 - 弹出弹窗
+			onChooseAvatar() {
+				this.tempAvatarUrl = ''
+				this.showAvatarModal = true
+			},
+
+			// 微信选择头像回调
+			onChooseAvatarResult(e) {
+				this.tempAvatarUrl = e.detail.avatarUrl
+			},
+
+			// 保存头像
+			async saveAvatar() {
+				if (!this.tempAvatarUrl) return
+
+				try {
+					uni.showLoading({ title: '上传中...', mask: true })
+					const uploadRes = await uni.uploadFile({
+						url: API_BASE_URL + '/api/app/file/upload',
+						filePath: this.tempAvatarUrl,
+						name: 'file'
+					})
+					uni.hideLoading()
+
+					if (uploadRes.data) {
+						const data = JSON.parse(uploadRes.data)
+						if (data.code === 200 && data.data && data.data.fileName) {
+							const avatarUrl = API_BASE_URL + '/api/admin/file/preview/' + data.data.fileName
+
+							await updateUserInfo({ avatarUrl })
+							this.userInfo.avatarUrl = avatarUrl
+							uni.setStorageSync('userInfo', this.userInfo)
+							this.showAvatarModal = false
+							uni.showToast({ title: '头像已更新', icon: 'success' })
+						}
+					}
+				} catch (error) {
+					uni.hideLoading()
+					uni.showToast({ title: '上传失败', icon: 'none' })
+				}
+			},
+
+			// 编辑昵称 - 弹出弹窗
+			onEditNickname() {
+				this.tempNickname = ''
+				this.showNicknameModal = true
+			},
+
+			// 昵称输入回调
+			onNicknameInput(e) {
+				this.tempNickname = e.detail.value
+			},
+
+			// 保存昵称
+			async saveNickname() {
+				if (!this.tempNickname) return
+
+				try {
+					uni.showLoading({ title: '保存中...', mask: true })
+					await updateUserInfo({ nickName: this.tempNickname })
+					uni.hideLoading()
+
+					this.userInfo.nickName = this.tempNickname
+					uni.setStorageSync('userInfo', this.userInfo)
+					this.showNicknameModal = false
+					uni.showToast({ title: '昵称已更新', icon: 'success' })
+				} catch (error) {
+					uni.hideLoading()
+					uni.showToast({ title: '保存失败', icon: 'none' })
+				}
 			},
 
 			// 查看收藏

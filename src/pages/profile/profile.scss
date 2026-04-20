@@ -58,6 +58,26 @@
   box-shadow: 0 8rpx 30rpx rgba(0, 0, 0, 0.15);
 }
 
+.avatar-open-data {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 50%;
+  border: 6rpx solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8rpx 30rpx rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  display: block;
+}
+
+.avatar-tip {
+  position: absolute;
+  bottom: -30rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+}
+
 .default-avatar {
   width: 100%;
   height: 100%;
@@ -83,6 +103,25 @@
   margin-bottom: 15rpx;
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
   line-height: 1.2;
+}
+
+.nickname-wrapper {
+  margin-bottom: 15rpx;
+}
+
+.nickname.placeholder {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 32rpx;
+}
+
+.nickname-open-data {
+  font-size: 40rpx;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 15rpx;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
+  line-height: 1.2;
+  color: #fff;
 }
 
 .welcome {
@@ -401,4 +440,148 @@
 .user-follow-stats .stat-item:active {
   background: rgba(255, 255, 255, 0.2);
   transform: scale(0.95);
+}
+
+/* 修改头像/昵称弹窗样式 */
+.edit-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.edit-modal-content {
+  background: #fff;
+  border-radius: 20rpx;
+  width: 80%;
+  max-width: 500rpx;
+  overflow: hidden;
+}
+
+.edit-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.edit-modal-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.edit-modal-close {
+  font-size: 40rpx;
+  color: #999;
+  line-height: 1;
+}
+
+.edit-modal-body {
+  padding: 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.edit-modal-tip {
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 30rpx;
+}
+
+.choose-avatar-btn {
+  width: 180rpx;
+  height: 180rpx;
+  border-radius: 50%;
+  background: #f5f5f5;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.choose-avatar-btn::after {
+  border: none;
+}
+
+.preview-avatar {
+  width: 180rpx;
+  height: 180rpx;
+  border-radius: 50%;
+}
+
+.choose-avatar-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.choose-avatar-icon {
+  font-size: 50rpx;
+  color: #999;
+}
+
+.choose-avatar-text {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 10rpx;
+}
+
+.nickname-input {
+  width: 100%;
+  height: 80rpx;
+  background: #f5f5f5;
+  border-radius: 10rpx;
+  padding: 20rpx;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.edit-modal-footer {
+  display: flex;
+  padding: 20rpx 30rpx 30rpx;
+  gap: 20rpx;
+}
+
+.edit-cancel-btn {
+  flex: 1;
+  height: 80rpx;
+  background: #f5f5f5;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  color: #666;
+  border: none;
+}
+
+.edit-cancel-btn::after {
+  border: none;
+}
+
+.edit-confirm-btn {
+  flex: 1;
+  height: 80rpx;
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  color: #fff;
+  border: none;
+}
+
+.edit-confirm-btn::after {
+  border: none;
+}
+
+.edit-confirm-btn[disabled] {
+  background: #ccc;
+  color: #fff;
 }

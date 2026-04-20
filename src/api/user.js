@@ -49,3 +49,8 @@ export const submitFeedback = (data) => {
 export const getFeedbackList = () => {
   return get('/api/app/feedback/list', {}, { loading: false })
 }
+
+// 更新用户信息（昵称和头像）
+export const updateUserInfo = (data) => {
+  return post('/api/app/user/update', data)
+}
